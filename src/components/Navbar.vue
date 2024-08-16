@@ -9,17 +9,17 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav d-flex mx-5" id="mg-nav-items">
-                    <li class="nav-item mx-4">
-                        <a class="nav-link" id="mg-nav-brand" href="about_us/">Brand</a>
+                    <li class="nav-item mx-4" :class="{ active: isActive('about_us/')}">
+                        <a class="nav-link" id="mg-nav-brand" href="/about_us/">Brand</a>
                     </li>
-                    <li class="nav-item mx-4">
-                        <a class="nav-link" id="mg-nav-class" href="class/">Class</a>
+                    <li class="nav-item mx-4" :class="{ active: isActive('class/')}">
+                        <a class="nav-link" id="mg-nav-class" href="/class/">Class</a>
                     </li>
-                    <li class="nav-item mx-4">
-                        <a class="nav-link" id="mg-nav-shop" href="shop/">Shop</a>
+                    <li class="nav-item mx-4" :class="{ active: isActive('shop/')}">
+                        <a class="nav-link" id="mg-nav-shop" href="/shop/">Shop</a>
                     </li>
                     <li class="nav-item dropdown mx-4">
-                        <a class="nav-link dropdown-toggle no-arrow" id="mg-nav-support" href="support/">Support</a>
+                        <a class="nav-link dropdown-toggle no-arrow" :class="{ active: isActive('support/')}" id="mg-nav-support" href="/support/">Support</a>
                         <ul class="dropdown-menu">
                             <li><h6 class="dropdown-header">Support</h6></li>
                             <li><hr class="dropdown-divider"></li>
@@ -74,6 +74,16 @@ export default {
             opacity,
         };
     },
+    computed: {
+        currentPath() {
+            return window.location.pathname;
+        }
+    },
+    methods: {
+        isActive(path) {
+            return this.currentPath.includes(path);
+        }
+    }
 };
 </script>
 
@@ -91,6 +101,10 @@ export default {
 }
 
 .nav-link:hover {
+    opacity: 1;
+}
+
+.nav-item.active .nav-link {
     opacity: 1;
 }
 
@@ -115,5 +129,6 @@ export default {
     opacity: 1;
     transition: background-color 0.3s ease;
 }
+
 </style>
 

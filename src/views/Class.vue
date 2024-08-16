@@ -12,7 +12,7 @@
                         <div class="ms-4">
                             <h5>{{ classItem.title }}</h5>
                             <p>{{ classItem.short_description }} ddddddfasdfkljasdfkl;jalsjd</p>
-                            <a :href="classItem.id" class="btn btn-dark mt-3">Learn More</a>
+                            <a :href="classItem.title" class="btn btn-dark mt-3">Learn More</a>
                         </div>
                         
                     </div> 
@@ -55,13 +55,12 @@
                             <div class="card-body">
                                 <h5 class="card-title">{{ classItem.title }}</h5>
                                 <p class="card-text">{{ classItem.short_description }}</p>
-                                
                                 <div class="d-flex justify-content-between">
                                     <span class="card-text ms-2">
                                         <i class="bi bi-hand-thumbs-up"></i> {{ classItem.likes }}
                                         <i class="bi bi-star-fill"></i> {{ classItem.interests }}
                                     </span>
-                                    <a :href="classItem.id" class="btn btn-dark ms-2">Learn More</a>
+                                    <a :href="classItem.title" class="btn btn-dark ms-2">Learn More</a>
                                 </div>
                                 
                             </div>
@@ -101,7 +100,7 @@ export default {
     },
     methods: {
         fetchClassesData() {
-            axios.get('http://localhost:8000/class/api/classes/')
+            axios.get('http://localhost:8000/class/api/')
                 .then(response => {
                     this.classes = response.data;
                     this.setTopClasses();
