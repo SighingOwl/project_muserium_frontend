@@ -65,7 +65,7 @@
             <!-- Class Information Nav End -->
             <!-- Class Information Start -->
             <div>
-                <component :is="currentTabComponent" :item="classItem" :activeTab="activeTab"></component>
+                <component :is="currentTabComponent" :classItem="classItem" :activeTab="activeTab"></component>
             </div>
             <!-- Class Information End -->
         </div>

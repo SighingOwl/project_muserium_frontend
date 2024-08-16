@@ -1,11 +1,11 @@
 <template>
     <p>{{  activeTab }}</p>
-    <p>{{ item }}</p>
+    <p>{{ classItem }}</p>
 </template>
 
 <script>
 export default {
-    props: ['activeTab', 'item'],
+    props: ['activeTab', 'classItem'],
 }
 </script>
 

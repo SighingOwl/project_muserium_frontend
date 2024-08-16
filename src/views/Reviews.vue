@@ -83,7 +83,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <span>리뷰 </span>
-                        <span class="fw-bold">{{ paginator.count }}</span>
+                        <span class="fw-bold">{{ paginator.count || 0}}</span>
                         <span>건</span>
                     </div>
                     <div class="sort-links">
@@ -144,20 +144,22 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
-    props: ['activeTab', 'item'],
+    props: ['classItem'],
     data() {
         return {
             showForm: false,
             showAlert: false,
             showUpdateAlert: false,
             showDeleteAlert: false,
-            csrfToken: '',
             page: 1,
             pageSize: 5,
             pageOrder: '',
             reviews: [],
             paginator: [],
+            averageRating: 0,
             reviewContent: '',
             maxTextLength: 500,
             textLengthWarning: '',
@@ -195,15 +197,6 @@ export default {
         }
     },
     computed: {
-        averageRating() {
-            if (this.reviews.length) {
-                const totalRating = this.reviews.reduce((sum, review) => sum + review.rating, 0);
-                return totalRating / this.reviews.length;
-            }
-            else {
-                return 0;
-            }
-        },
         reviewLabel() {
             if (this.reviewRating === 0) {
                 return '평점을 선택해주세요.'
@@ -218,68 +211,58 @@ export default {
         },
     },
     async mounted() {
-        await this.fetchCsrfToken();
-        await this.fetchReviews();
+        await this.getReviews();
     },
     methods: {
         toggleForm() {
             this.showForm = !this.showForm;
         },
-        async fetchCsrfToken() {
-            try {
-                const response = await fetch('http://localhost:8000/common/get-csrf-token/');
-                const data = await response.json();
-                this.csrfToken = data.csrfToken;
-            } catch (error) {
-                console.error("There was a problem fetching the CSRF token.", error);
-            }
-        },
-        async fetchReviews() {
+        async getReviews() {
             try {
                 const queryParams = new URLSearchParams({
+                    glass_class_id: this.classItem.id,
                     page: this.page,
                     page_size: this.pageSize,
-                    page_order: this.pageOrder, 
+                    page_order: this.pageOrder,
                 }).toString();
 
-                const reviewResponse = await fetch(`http://localhost:8000/class/${this.item.id}/reviews/?${queryParams}`);
-                const reviewData = await reviewResponse.json();
+                const reviewResponse = await axios.get(`http://localhost:8000/common/reviews/read/class/?${queryParams}`);
+                const reviewData = reviewResponse.data;
                 this.reviews = reviewData.reviews;
                 this.paginator = reviewData.paginator;
-                console.log(this.reviews);
-                console.log(this.paginator);
+                this.averageRating = reviewData.average_rating;
             } catch (error) {
-                console.error("There was a problem fetching the reviews.", error);
+                console.error("There was a problem getting the reviews.", error);
             }
         },
         sortReviews(criteria) {
             this.activeCriteria = criteria;
             if (criteria === 'newest') {
                 this.pageOrder = '-created_at';
-                this.fetchReviews();
+                this.getReviews();
             } else if (criteria === 'ratingHigh') {
                 this.pageOrder = '-rating';
-                this.fetchReviews();
+                this.getReviews();
             } else if (criteria === 'ratingLow') {
                 this.pageOrder = 'rating';
-                this.fetchReviews();
+                this.getReviews();
             }
         },
         prevPage() {
             if (this.page > 1) {
                 this.page--;
-                this.fetchReviews();
+                this.getReviews();
             }
         },
         nextPage() {
             if (this.paginator.next_page !== 'None') {
                 this.page++;
-                this.fetchReviews();
+                this.getReviews();
             }
         },
         goToPage(pageNumber) {
             this.page = pageNumber;
-            this.fetchReviews();
+            this.getReviews();
         },
         confirmSubmitReview(event) {
             event.preventDefault();
@@ -296,23 +279,21 @@ export default {
         },
         async submitReview() {
             try {
-                const response = await fetch(`http://localhost:8000/common/reviews/create/class/${this.item.id}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': this.csrfToken,
+                const response = await axios.post(`http://localhost:8000/common/reviews/create/class/`, {
+                    title: this.reviewTitle,
+                    content: this.reviewContent,
+                    rating: this.reviewRating,
+                    teacher_rating: this.teacherRating,
+                    readiness_rating: this.readinessRating,
+                    content_rating: this.contentRating,
+                }, {
+                    params: {
+                        glass_class_id: this.classItem.id,
                     },
-                    body: JSON.stringify({
-                        title: this.reviewTitle,
-                        content: this.reviewContent,
-                        rating: this.reviewRating,
-                        teacher_rating: this.teacherRating,
-                        readiness_rating: this.readinessRating,
-                        content_rating: this.contentRating,
-                    }),
+                    withCredentials: true,
                 });
-                if (response.ok) {
-                    await this.fetchReviews(); // Fetch reviews again to update the list
+                if (response.status === 200) {
+                    await this.getReviews(); // Get reviews again to update the list
                     this.reviewContent = '';
                     this.reviewRating = 0;
                     this.teacherRating = 0;
@@ -324,7 +305,7 @@ export default {
                     throw new Error('Failed to submit review');
                 }
             } catch (error) {
-                console.error("There was a problem with your fetch operation.", error);
+                console.error("There was a problem with your get operation.", error);
             }
         },
         getStarStyle(star, rating) {
@@ -518,23 +499,21 @@ export default {
         },
         async submitUpdatedReview() {
             try {
-                const response = await fetch(`http://localhost:8000/common/reviews/update/class/${this.reviewID}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': this.csrfToken,
+                const response = await axios.post(`http://localhost:8000/common/reviews/update/class/`, {
+                    title: this.reviewTitle,
+                    content: this.reviewContent,
+                    rating: this.reviewRating,
+                    teacher_rating: this.teacherRating,
+                    readiness_rating: this.readinessRating,
+                    content_rating: this.contentRating,
+                }, {
+                    params: {
+                        review_id: this.reviewID,
                     },
-                    body: JSON.stringify({
-                        title: this.reviewTitle,
-                        content: this.reviewContent,
-                        rating: this.reviewRating,
-                        teacher_rating: this.teacherRating,
-                        readiness_rating: this.readinessRating,
-                        content_rating: this.contentRating,
-                    }),
+                    withCredentials: true,
                 });
-                if (response.ok) {
-                    await this.fetchReviews(); // Fetch reviews again to update the list
+                if (response.status === 200) {
+                    await this.getReviews(); // Get reviews again to update the list
                     this.reviewID = '';
                     this.reviewContent = '';
                     this.reviewRating = 0;
@@ -548,7 +527,7 @@ export default {
                     throw new Error('Failed to update review');
                 }
             } catch (error) {
-                console.error("There was a problem with your fetch operation.", error);
+                console.error("There was a problem with your get operation.", error);
             }
         },
         confirmDeleteReview(review) {
@@ -562,25 +541,21 @@ export default {
         },
         async deleteReview() {
             try {
-                const response = await fetch(`http://localhost:8000/common/reviews/delete/class%review/${this.reviewID}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': this.csrfToken,
-                    },
-                    body: JSON.stringify({
+                const response = await axios.delete(`http://localhost:8000/common/reviews/delete/class%review/`, {
+                    params: {
                         review_id: this.reviewID,
-                    }),
+                    },
+                    withCredentials: true,
                 });
-                if (response.ok) {
-                    await this.fetchReviews(); // Fetch reviews again to update the list
+                if (response.status === 200) {
+                    await this.getReviews(); // Get reviews again to update the list
                     this.reviewID = '';
                     this.showDeleteAlert = true;  // Show the success alert
                 } else {
                     throw new Error('Failed to delete review');
                 }
             } catch (error) {
-                console.error("There was a problem with your fetch operation.", error);
+                console.error("There was a problem with your get operation.", error);
             }
         }
     }
