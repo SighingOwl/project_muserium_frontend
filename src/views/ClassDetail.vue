@@ -136,7 +136,7 @@ export default {
     },
     methods: {
         fetchClassDetail() {
-            axios.get(`http://localhost:8000/class/api/${this.title}/`)
+            axios.get(`https://localhost:8000/class/api/${this.title}/`)
                 .then(response => {
                     this.classItem = response.data;
                 })
@@ -155,7 +155,7 @@ export default {
             return `${formattedHours}:${minutes} ${period}`;
         },
         fetchReservations() {
-            axios.get(`http://localhost:8000/class/api/${this.title}/reservations/`)
+            axios.get(`https://localhost:8000/class/api/${this.title}/reservations/`)
                 .then(response => {
                     this.reservations = response.data;
                     this.updateDisabledDates();

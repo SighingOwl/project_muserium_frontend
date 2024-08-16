@@ -16,7 +16,7 @@ export default {
     methods: {
         async getCsrfToken() {
             try {
-                const response = await axios.get('http://localhost:8000/common/get-csrf-token/', {
+                const response = await axios.get('https://localhost:8000/common/get-csrf-token/', {
                     withCredentials: true,
                 });
                 axios.defaults.headers.common['X-CSRFToken'] = response.data.csrfToken;

@@ -100,7 +100,7 @@ export default {
     },
     methods: {
         fetchClassesData() {
-            axios.get('http://localhost:8000/class/api/')
+            axios.get('https://localhost:8000/class/api/')
                 .then(response => {
                     this.classes = response.data;
                     this.setTopClasses();

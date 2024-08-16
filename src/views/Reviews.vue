@@ -226,7 +226,7 @@ export default {
                     page_order: this.pageOrder,
                 }).toString();
 
-                const reviewResponse = await axios.get(`http://localhost:8000/common/reviews/read/class/?${queryParams}`);
+                const reviewResponse = await axios.get(`https://localhost:8000/common/reviews/read/class/?${queryParams}`);
                 const reviewData = reviewResponse.data;
                 this.reviews = reviewData.reviews;
                 this.paginator = reviewData.paginator;
@@ -237,6 +237,7 @@ export default {
         },
         sortReviews(criteria) {
             this.activeCriteria = criteria;
+            this.page = 1;
             if (criteria === 'newest') {
                 this.pageOrder = '-created_at';
                 this.getReviews();
@@ -279,7 +280,7 @@ export default {
         },
         async submitReview() {
             try {
-                const response = await axios.post(`http://localhost:8000/common/reviews/create/class/`, {
+                const response = await axios.post(`https://localhost:8000/common/reviews/create/class/`, {
                     title: this.reviewTitle,
                     content: this.reviewContent,
                     rating: this.reviewRating,
@@ -499,7 +500,7 @@ export default {
         },
         async submitUpdatedReview() {
             try {
-                const response = await axios.post(`http://localhost:8000/common/reviews/update/class/`, {
+                const response = await axios.post(`https://localhost:8000/common/reviews/update/class/`, {
                     title: this.reviewTitle,
                     content: this.reviewContent,
                     rating: this.reviewRating,
@@ -541,7 +542,7 @@ export default {
         },
         async deleteReview() {
             try {
-                const response = await axios.delete(`http://localhost:8000/common/reviews/delete/class%review/`, {
+                const response = await axios.delete(`https://localhost:8000/common/reviews/delete/class%review/`, {
                     params: {
                         review_id: this.reviewID,
                     },
