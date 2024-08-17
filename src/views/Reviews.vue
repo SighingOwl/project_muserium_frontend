@@ -120,12 +120,12 @@
                     </div>
                     <hr>
                 </div>
-                <div class="paginator d-flex justify-content-center align-items-center">
-                    <button v-if="paginator.previous_page" @click="prevPage" class="btn btn-outline-dark mx-2">< 이전</button>
-                    <button v-for="pageNumber in paginator.page_range" :key="pageNumber" @click="goToPage(pageNumber)" :class="['btn', 'btn-outline-dark', 'mx-2', { 'active': pageNumber === page }]">
+                <div class="paginator d-flex justify-content-center align-items-center" ref="paging">
+                    <button v-if="paginator.previous_page" @click="handlePrevClick" class="btn btn-outline-dark mx-2">< 이전</button>
+                    <button v-for="pageNumber in displayedPages" :key="pageNumber" @click="goToPage(pageNumber)" :class="['btn', 'btn-outline-dark', 'mx-2', { 'active': pageNumber === page }]">
                         {{ pageNumber }}
                     </button>
-                    <button v-if="paginator.next_page" @click="nextPage" class="btn btn-outline-dark mx-2">다음 ></button>
+                    <button v-if="paginator.next_page" @click="handleNextClick" class="btn btn-outline-dark mx-2">다음 ></button>
                 </div>
             </div>
             <div v-else>
@@ -135,7 +135,6 @@
                     </span>
                     <p>리뷰를 기다려주세요!</p>
                 </div>
-
             </div>
         </div>
         <!-- Display reviews End -->
@@ -145,6 +144,7 @@
 
 <script>
 import axios from 'axios';
+import { h } from 'vue';
 
 export default {
     props: ['classItem'],
@@ -157,6 +157,8 @@ export default {
             page: 1,
             pageSize: 5,
             pageOrder: '',
+            currentPageGroup: 0,
+            pagesPerGroup: 5,
             reviews: [],
             paginator: [],
             averageRating: 0,
@@ -209,6 +211,14 @@ export default {
         isReviewVaild() {
             return this.reviewContent.length >= 10 && this.reviewRating > 0 && this.teacherRating > 0 && this.readinessRating > 0 && this.contentRating > 0;
         },
+        displayedPages() {
+            const start = this.currentPageGroup * this.pagesPerGroup;
+            const end = start + this.pagesPerGroup;
+            return this.paginator.page_range.slice(start, end);
+        },
+        maxPageGroup() {
+            return Math.ceil(this.paginator.page_range.length / this.pagesPerGroup) - 1;
+        }
     },
     async mounted() {
         await this.getReviews();
@@ -234,36 +244,6 @@ export default {
             } catch (error) {
                 console.error("There was a problem getting the reviews.", error);
             }
-        },
-        sortReviews(criteria) {
-            this.activeCriteria = criteria;
-            this.page = 1;
-            if (criteria === 'newest') {
-                this.pageOrder = '-created_at';
-                this.getReviews();
-            } else if (criteria === 'ratingHigh') {
-                this.pageOrder = '-rating';
-                this.getReviews();
-            } else if (criteria === 'ratingLow') {
-                this.pageOrder = 'rating';
-                this.getReviews();
-            }
-        },
-        prevPage() {
-            if (this.page > 1) {
-                this.page--;
-                this.getReviews();
-            }
-        },
-        nextPage() {
-            if (this.paginator.next_page !== 'None') {
-                this.page++;
-                this.getReviews();
-            }
-        },
-        goToPage(pageNumber) {
-            this.page = pageNumber;
-            this.getReviews();
         },
         confirmSubmitReview(event) {
             event.preventDefault();
@@ -316,6 +296,158 @@ export default {
                 '-webkit-background-clip': 'text',
                 '-webkit-text-fill-color': 'transparent'
             };
+        },
+        updateReview(review) {
+            this.reviewID = review.id;
+            this.reviewContent = review.content;
+            this.reviewRating = review.rating;
+            this.teacherRating = review.teacher_rating;
+            this.readinessRating = review.readiness_rating;
+            this.contentRating = review.content_rating;
+            this.showForm = true;
+            this.isUpdating = true;
+            this.$nextTick(() => {
+                this.$refs.reviewForm.scrollIntoView({ behavior: 'smooth' });
+            })
+        },
+        confirmUpdateReview(event) {
+            event.preventDefault();
+
+            if (!this.isReviewVaild) {
+                return;
+            }
+
+            if (confirm('리뷰를 수정하시겠습니까?')) {
+                this.submitUpdatedReview();
+            } else {
+                return;
+            }
+        },
+        async submitUpdatedReview() {
+            try {
+                const response = await axios.post(`https://localhost:8000/common/reviews/update/class/`, {
+                    title: this.reviewTitle,
+                    content: this.reviewContent,
+                    rating: this.reviewRating,
+                    teacher_rating: this.teacherRating,
+                    readiness_rating: this.readinessRating,
+                    content_rating: this.contentRating,
+                }, {
+                    params: {
+                        review_id: this.reviewID,
+                    },
+                    withCredentials: true,
+                });
+                if (response.status === 200) {
+                    await this.getReviews(); // Get reviews again to update the list
+                    this.reviewID = '';
+                    this.reviewContent = '';
+                    this.reviewRating = 0;
+                    this.teacherRating = 0;
+                    this.readinessRating = 0;
+                    this.contentRating = 0;
+                    this.showForm = false;  // Hide the form after submitting the review
+                    this.isUpdating = false;
+                    this.showUpdateAlert = true;  // Show the success alert
+                } else {
+                    throw new Error('Failed to update review');
+                }
+            } catch (error) {
+                console.error("There was a problem with your get operation.", error);
+            }
+        },
+        confirmDeleteReview(review) {
+            this.reviewID = review.id;
+            if (confirm('리뷰를 삭제하시겠습니까?')) {
+                this.deleteReview();
+            } else {
+                this.reviewID = '';
+                return;
+            }
+        },
+        async deleteReview() {
+            try {
+                const response = await axios.delete(`https://localhost:8000/common/reviews/delete/class`, {
+                    params: {
+                        review_id: this.reviewID,
+                    },
+                    withCredentials: true,
+                });
+                if (response.status === 200) {
+                    await this.getReviews(); // Get reviews again to update the list
+                    this.reviewID = '';
+                    this.showDeleteAlert = true;  // Show the success alert
+                } else {
+                    throw new Error('Failed to delete review');
+                }
+            } catch (error) {
+                console.error("There was a problem with your get operation.", error);
+            }
+        },
+        sortReviews(criteria) {
+            this.activeCriteria = criteria;
+            this.page = 1;
+            if (criteria === 'newest') {
+                this.pageOrder = '-created_at';
+                this.getReviews();
+            } else if (criteria === 'ratingHigh') {
+                this.pageOrder = '-rating';
+                this.getReviews();
+            } else if (criteria === 'ratingLow') {
+                this.pageOrder = 'rating';
+                this.getReviews();
+            }
+        },
+        async handlePrevClick() {
+            if (this.page > 1 && this.page % this.pagesPerGroup === 1) {
+                await this.prevPageGroup();
+            } else {
+                await this.prevPage();
+            }
+            this.scrollToPaginator();
+        },
+        async handleNextClick() {
+            if (this.paginator.next_page && this.page % this.pagesPerGroup === 0) {
+                await this.nextPageGroup();
+            } else {
+                await this.nextPage();
+            }
+            this.scrollToPaginator();
+        },
+        async goToPage(pageNumber) {
+            this.page = pageNumber;
+            await this.getReviews();
+            this.scrollToPaginator();
+        },
+        async prevPage() {
+            if (this.page > 1) {
+                this.page--;
+                await this.getReviews();
+            }
+        },
+        async nextPage() {
+            if (this.paginator.next_page !== 'None') {
+                this.page++;
+                await this.getReviews();
+            }
+        },
+        async nextPageGroup() {
+            if (this.currentPageGroup < this.maxPageGroup) {
+                this.currentPageGroup++;
+                await this.nextPage();
+            }
+        },
+        async prevPageGroup() {
+            if (this.currentPageGroup > 0) {
+                this.currentPageGroup--;
+                await this.prevPage();
+            }
+        },
+        scrollToPaginator() {
+            const paginatorElement = this.$refs.paging;
+            if (paginatorElement) {
+                paginatorElement.scrollIntoView({ behavior: 'smooth' });
+            }
         },
         formatDate(dateString) {
             const options = { year: 'numeric', month: '2-digit', day: '2-digit'};
@@ -472,93 +604,6 @@ export default {
             }
             
         },
-        updateReview(review) {
-            this.reviewID = review.id;
-            this.reviewContent = review.content;
-            this.reviewRating = review.rating;
-            this.teacherRating = review.teacher_rating;
-            this.readinessRating = review.readiness_rating;
-            this.contentRating = review.content_rating;
-            this.showForm = true;
-            this.isUpdating = true;
-            this.$nextTick(() => {
-                this.$refs.reviewForm.scrollIntoView({ behavior: 'smooth' });
-            })
-        },
-        confirmUpdateReview(event) {
-            event.preventDefault();
-
-            if (!this.isReviewVaild) {
-                return;
-            }
-
-            if (confirm('리뷰를 수정하시겠습니까?')) {
-                this.submitUpdatedReview();
-            } else {
-                return;
-            }
-        },
-        async submitUpdatedReview() {
-            try {
-                const response = await axios.post(`https://localhost:8000/common/reviews/update/class/`, {
-                    title: this.reviewTitle,
-                    content: this.reviewContent,
-                    rating: this.reviewRating,
-                    teacher_rating: this.teacherRating,
-                    readiness_rating: this.readinessRating,
-                    content_rating: this.contentRating,
-                }, {
-                    params: {
-                        review_id: this.reviewID,
-                    },
-                    withCredentials: true,
-                });
-                if (response.status === 200) {
-                    await this.getReviews(); // Get reviews again to update the list
-                    this.reviewID = '';
-                    this.reviewContent = '';
-                    this.reviewRating = 0;
-                    this.teacherRating = 0;
-                    this.readinessRating = 0;
-                    this.contentRating = 0;
-                    this.showForm = false;  // Hide the form after submitting the review
-                    this.isUpdating = false;
-                    this.showUpdateAlert = true;  // Show the success alert
-                } else {
-                    throw new Error('Failed to update review');
-                }
-            } catch (error) {
-                console.error("There was a problem with your get operation.", error);
-            }
-        },
-        confirmDeleteReview(review) {
-            this.reviewID = review.id;
-            if (confirm('리뷰를 삭제하시겠습니까?')) {
-                this.deleteReview();
-            } else {
-                this.reviewID = '';
-                return;
-            }
-        },
-        async deleteReview() {
-            try {
-                const response = await axios.delete(`https://localhost:8000/common/reviews/delete/class%review/`, {
-                    params: {
-                        review_id: this.reviewID,
-                    },
-                    withCredentials: true,
-                });
-                if (response.status === 200) {
-                    await this.getReviews(); // Get reviews again to update the list
-                    this.reviewID = '';
-                    this.showDeleteAlert = true;  // Show the success alert
-                } else {
-                    throw new Error('Failed to delete review');
-                }
-            } catch (error) {
-                console.error("There was a problem with your get operation.", error);
-            }
-        }
     }
 }
 </script>
