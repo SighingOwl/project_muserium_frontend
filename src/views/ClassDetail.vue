@@ -49,8 +49,8 @@
             </div>
             <!-- Class Reservation End -->
             <!-- Class Information Nav Start -->
-            <div class="container mt-5" id="class_info">
-                <ul class="nav nav-underline" id="class_info_nav">
+            <div class="container mt-5" id="class_info" ref="class_info_container">
+                <ul class="nav nav-underline row d-flex justify-content-center" id="class_info_nav" ref="class_info_nav">
                     <li class="nav-item col-md-3" id="class_info_nav_list">
                         <a class="nav-link text-black" id="class_info_nav_link" :class="{ active: activeTab === 'details'}" @click="setActiveTap('details')">상세정보</a>
                     </li>
@@ -58,7 +58,7 @@
                         <a class="nav-link text-black" id="class_info_nav_link" :class="{ active: activeTab === 'reviews'}" @click="setActiveTap('reviews')">클래스 리뷰</a>
                     </li>
                     <li class="nav-item col-md-3">
-                        <a class="nav-link text-black" id="class_info_nav_link" :class="{ active: activeTab === 'qa'}" @click="setActiveTap('qa')">Q&A</a>
+                        <a class="nav-link text-black" id="class_info_nav_link" :class="{ active: activeTab === 'qna'}" @click="setActiveTap('qna')">Q&A</a>
                     </li>
                 </ul>
             </div>
@@ -104,6 +104,7 @@ export default {
             availableTimes: ['10:00:00', '12:00:00', '14:00:00', '16:00:00'],
             disabledTimezones: [],
             activeTab: 'details',
+            navTop: 0,
         };
     },
     computed: {
@@ -124,15 +125,27 @@ export default {
                     return DetailInfo;
                 case 'reviews':
                     return Reviews;
-                case 'qa':
+                case 'qna':
                     return QnA;
             }
+        }
+    },
+    watch: {
+        selectedDate(newDate) {
+            this.updateDisabledTimes();
         }
     },
     mounted() {
         this.fetchClassDetail();
         this.fetchReservations();
         this.updateDisabledDates();
+        this.setFixedNavWidth();
+        window.addEventListener('resize', this.setFixedNavWidth);
+        window.addEventListener('scroll', this.handleScroll);
+    },
+    beforeDestroy() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.setFixedNavWidth);
     },
     methods: {
         fetchClassDetail() {
@@ -210,12 +223,38 @@ export default {
         setActiveTap(tab) {
             this.activeTab = tab;
         },
-    },
-    watch: {
-        selectedDate(newDate) {
-            this.updateDisabledTimes();
+        handleScroll() {
+            const nav = document.getElementById('class_info_nav');
+            const scrollY = window.scrollY;
+            const navbarHeight = document.querySelector('.navbar').offsetHeight;
+
+            if (this.navTop === 0) {
+                this.navTop = nav.offsetTop;
+            }
+
+            if (nav.style.width === '') {
+                this.setFixedNavWidth();
+            }
+
+            console.log(scrollY, this.navTop, navbarHeight);
+
+            if (scrollY >= this.navTop - navbarHeight) {
+                nav.classList.add('fixed-nav');
+                nav.style.top = `${navbarHeight}px`;
+            } else {
+                nav.classList.remove('fixed-nav');
+                nav.style.top = 'initial';
+            }
+        },
+        setFixedNavWidth() {
+            const container = this.$refs.class_info_container;
+            const fixedNav = this.$refs.class_info_nav;
+            if (container && fixedNav) {
+                fixedNav.style.width = `${container.offsetWidth}px`;
+            }
         }
-    }
+    },
+    
 };
 </script>
 
@@ -236,12 +275,13 @@ export default {
     border-style: solid;
 }
 
-#class_info_nav {
-    display: flex;
-    justify-content: center;
-}
-
 #class_info_nav_link {
     text-align: center;
+}
+
+.fixed-nav {
+    position: fixed;
+    z-index: 1000;
+    background-color: #ffffff;
 }
 </style>

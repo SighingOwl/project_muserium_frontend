@@ -286,8 +286,6 @@ export default {
                     const contentData = response.data;
                     this.questionContents[questionID] = contentData.question.content;
                     this.answerContents[questionID] = contentData.question.answer_content;
-                    console.log(this.questionContents[questionID]);
-                    console.log(this.answerContents[questionID]);
                 } else {
                     throw new Error('Failed to get question content');
                 }
