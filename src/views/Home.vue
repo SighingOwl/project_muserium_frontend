@@ -73,7 +73,7 @@ export default {
     },
     methods: {
         fetchCarouselData() {
-            axios.get('http://localhost:8000/api/carousels/')
+            axios.get('https://localhost:8000/api/carousels/')
                 .then(response => {
                     this.carousels = response.data;
                 })
@@ -82,7 +82,7 @@ export default {
                 });
         },
         fetchCardData() {
-            axios.get('http://localhost:8000/api/cards/')
+            axios.get('https://localhost:8000/api/cards/')
                 .then(response => {
                     this.cards = response.data;
                 })

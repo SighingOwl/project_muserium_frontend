@@ -16,7 +16,7 @@
         <hr class="border border-dark opacity-100">
         
 
-        <!-- Submit a review Start -->
+        <!-- Review Form Start -->
         <button v-if="!showForm" @click="toggleForm" class="btn btn-dark">리뷰 작성</button>
 
         <form v-if="showForm" @submit.prevent="submitReview" class="row mt-3">
@@ -75,9 +75,9 @@
                 <button v-if="isUpdating" type="submit" class="btn btn-dark mt-2 review-btn" :disabled="!isReviewVaild" @click="confirmUpdateReview">리뷰 수정</button>
             </div>
         </form>
-        <!-- Submit a review End -->
+        <!-- Review Form End -->
 
-        <!-- Display reviews Start -->
+        <!-- Reviews List Start -->
         <div class="container mt-4">
             <div class="col-md">
                 <div class="d-flex justify-content-between align-items-center">
@@ -120,6 +120,7 @@
                     </div>
                     <hr>
                 </div>
+                <!-- Paginator Start -->
                 <div class="paginator d-flex justify-content-center align-items-center" ref="paging">
                     <button v-if="paginator.previous_page" @click="handlePrevClick" class="btn btn-outline-dark mx-2">< 이전</button>
                     <button v-for="pageNumber in displayedPages" :key="pageNumber" @click="goToPage(pageNumber)" :class="['btn', 'btn-outline-dark', 'mx-2', { 'active': pageNumber === page }]">
@@ -127,6 +128,7 @@
                     </button>
                     <button v-if="paginator.next_page" @click="handleNextClick" class="btn btn-outline-dark mx-2">다음 ></button>
                 </div>
+                <!-- Paginator End -->
             </div>
             <div v-else>
                 <div class="text-center no-contents">
@@ -137,7 +139,7 @@
                 </div>
             </div>
         </div>
-        <!-- Display reviews End -->
+        <!-- Reviews List End -->
     </div>
 
 </template>
@@ -151,7 +153,7 @@ export default {
     data() {
         return {
             showForm: false,
-            showAlert: false,
+            showSubmitAlert: false,
             showUpdateAlert: false,
             showDeleteAlert: false,
             page: 1,
@@ -229,18 +231,22 @@ export default {
         },
         async getReviews() {
             try {
-                const queryParams = new URLSearchParams({
-                    glass_class_id: this.classItem.id,
-                    page: this.page,
-                    page_size: this.pageSize,
-                    page_order: this.pageOrder,
-                }).toString();
-
-                const reviewResponse = await axios.get(`https://localhost:8000/common/reviews/read/class/?${queryParams}`);
-                const reviewData = reviewResponse.data;
-                this.reviews = reviewData.reviews;
-                this.paginator = reviewData.paginator;
-                this.averageRating = reviewData.average_rating;
+                const response = await axios.get(`https://localhost:8000/common/reviews/read/class/`,{
+                    params: {
+                        glass_class_id: this.classItem.id,
+                        page: this.page,
+                        page_size: this.pageSize,
+                        page_order: this.pageOrder,
+                    },
+                });
+                if (response.status === 200) {
+                    const reviewData = response.data;
+                    this.reviews = reviewData.reviews;
+                    this.paginator = reviewData.paginator;
+                    this.averageRating = reviewData.average_rating;
+                } else {
+                    throw new Error('Failed to get reviews');
+                }
             } catch (error) {
                 console.error("There was a problem getting the reviews.", error);
             }
@@ -281,7 +287,7 @@ export default {
                     this.readinessRating = 0;
                     this.contentRating = 0;
                     this.showForm = false;  // Hide the form after submitting the review
-                    this.showAlert = true;  // Show the success alert
+                    this.showSubmitAlert = true;  // Show the success alert
                 } else {
                     throw new Error('Failed to submit review');
                 }
@@ -718,6 +724,12 @@ export default {
 .sort-links a {
     font-size: 0.9rem;
     color: #888888;
+}
+
+.sort-links a:hover {
+    color: #000000;
+    font-weight: bold;
+    cursor: pointer;
 }
 
 .sort-links a.active {

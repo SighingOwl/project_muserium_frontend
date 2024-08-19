@@ -5,7 +5,7 @@
             <div class="col-md-5">
                 <img :src="classItem.image_url" class="img-fluid" alt="Class Image">
             </div>
-            <div class="col-md-5">
+            <div class="col-md-5 mb-5">
                 <div class="card border-0">
                     <div class="card-body">
                         <h5 class="card-title">{{ classItem.title }}</h5>
@@ -49,7 +49,7 @@
             </div>
             <!-- Class Reservation End -->
             <!-- Class Information Nav Start -->
-            <div class="container mt-3" id="class_info">
+            <div class="container mt-5" id="class_info">
                 <ul class="nav nav-underline" id="class_info_nav">
                     <li class="nav-item col-md-3" id="class_info_nav_list">
                         <a class="nav-link text-black" id="class_info_nav_link" :class="{ active: activeTab === 'details'}" @click="setActiveTap('details')">상세정보</a>
