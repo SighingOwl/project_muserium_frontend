@@ -16,7 +16,7 @@ const routes = [
     component: Class,
   },
   {
-    path: '/class/:title',
+    path: '/class/:classID',
     name: 'ClassDetail',
     component: ClassDetail,
     props: true

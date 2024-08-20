@@ -36,6 +36,23 @@
                     <div v-if="textLengthWarning" class="text-warning">{{ textLengthWarning }}</div>
                 </div>
             </div>
+            <div>
+                <input type="file" id="question-image-input" @change="handleQuestionImageUpload" hidden/>
+                <button type="button" class="btn btn-outline-dark mt-2 image-btn d-flex justify-content-center align-items-center" id="upload-question-image-from-user" @click="triggerQuestionFileInput">
+                    <div v-if="questionImagePreview">
+                        <img :src="questionImagePreview" alt="Question Image Preview" class="image-preview"/>
+                    </div>
+                    <div class="ms-5">
+                        <div>
+                            <i class="bi bi-image"></i>
+                            질문 사진 업로드
+                        </div>
+                        <div class="image-submit-btn-explaination">
+                            문의에 필요한 사진을 업로드해주세요.
+                        </div>
+                    </div>
+                </button>
+            </div>
             <div class="d-flex justify-content-end" id="submit-btn">
                 <button type="button" class="btn btn-outline-dark mt-2 me-2 question-btn" @click="confirmResetQuestionForm">취소</button>
                 <button v-if="!isUpdating" type="submit" class="btn btn-dark mt-2 question-btn" :disabled="!isQuestionVaild" @click="confirmSubmitQuestion">문의 등록</button>
@@ -48,10 +65,10 @@
         <div class="container mt-4">
             <div class="col-md">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <span>문의 </span>
-                        <span class="fw-bold">{{ paginator.count || 0}}</span>
-                        <span>건</span>
+                    <div class="content-count">
+                        <span>Total </span>
+                        <span class="fw-bold text-black">{{ paginator.count || 0}}</span>
+                        <span> Questions</span>
                     </div>
                     <div class="sort-links">
                         <a href="#" @click.prevent="sortQuestions('newest')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'newest' }">최신순</a>|
@@ -74,10 +91,15 @@
                     <div class="row align-items-center mt-4">
                         <div class="col text-center">{{ !question.answer.is_answered ? '답변대기' : '답변완료' }}</div>
                         <div class="col-6">
-                            <a href="#" class="text-decoration-none text-black question-title" @click="handleTitleClick(question, $event)">
-                                {{ question.title }}
-                            </a>
-                            <i v-if="question.is_secret" class="bi bi-lock-fill"></i>
+                            <template v-if="!question.is_secret">
+                                <a href="#" class="text-decoration-none text-black question-title" @click="handleTitleClick(question, $event)">
+                                    {{ question.title }}
+                                </a>
+                            </template>
+                            <template v-else>
+                                <span class="text-black quetion-title text-opacity-50">{{ question.title }}</span>
+                                <i v-if="question.is_secret" class="bi bi-lock-fill"></i>    
+                            </template>
                         </div>
                         <div class="col text-center">{{ question.author }}</div>
                         <div class="col text-center">{{ formatDate(question.created_at) }}</div>
@@ -95,10 +117,10 @@
                                             <button type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="updateQuestionForm(question)">문의 수정</button>
                                             <button type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="confirmDeleteQuestion(question)">문의 삭제</button>     
                                         </div>
-                                    </div>
-                                    
+                                    </div> 
                                     <div class="mt-3">
-                                        {{ questionContents[question.id] }}
+                                        <p>{{ questionContents[question.id] }}</p>
+                                        <img v-if="questionImages[question.id]" :src="questionImages[question.id]" alt="Question Image" class="img-fluid mt-3 content-img"/>
                                     </div>
                                     
                                 </div>
@@ -113,13 +135,14 @@
                                             <!-- 로그인 기능 생성 후 관리자가 로그인 했을 때만 활성화로 수정 예정 -->
                                             <button v-if="!question.answer.id" type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="toggleAnswerForm(question.id)" >관리자 답변 등록</button>
                                             <button v-if="question.answer.id" type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="updateAnswerForm(question)">관리자 답변 수정</button>
-                                            <button v-if="question.answer.id" type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="confirmDeleteAnswer(question.answer.id)">관리자 답변 삭제</button>  
+                                            <button v-if="question.answer.id" type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="confirmDeleteAnswer(question.id, question.answer.id)">관리자 답변 삭제</button>  
                                         </div>
                                         
                                     </div>  
                                     
                                     <div v-if="question.answer.id" class="mt-3">
-                                        {{ answerContents[question.id] }}
+                                        <p>{{ answerContents[question.id] }}</p>
+                                        <img v-if="answerImages[question.id]" :src="answerImages[question.id]" alt="Answer Image" class="img-fluid mt-3 content-img"/>
                                     </div>
                                               
                                 </div>
@@ -134,7 +157,23 @@
                                             <div class="char-counter">{{ answerContent.length }} / {{ answerContentLenUpperBound }}</div>
                                             <div v-if="textLengthWarning" class="text-warning">{{ textLengthWarning }}</div>
                                         </div>
-                                                
+                                    </div>
+                                    <div class="col-md-10 offset-md-1">
+                                        <input type="file" id="answer-image-input" @change="handleAnswerImageUpload" hidden/>
+                                        <button type="button" class="btn btn-outline-dark mt-2 image-btn d-flex justify-content-center align-items-center" id="upload-answer-image-from-user" @click="triggerAnswerFileInput">
+                                            <div v-if="answerImagePreview">
+                                                <img :src="answerImagePreview" alt="Answer Image Preview" class="image-preview"/>
+                                            </div>
+                                            <div class="ms-5">
+                                                <div>
+                                                    <i class="bi bi-image"></i>
+                                                    답변 사진 업로드
+                                                </div>
+                                                <div class="image-submit-btn-explaination">
+                                                    답변에 필요한 사진을 업로드해주세요.
+                                                </div>
+                                            </div>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-end" id="submit-btn">
@@ -179,12 +218,15 @@ export default {
     props: ['classItem'],
     data() {
         return {
+            /* showAlert variables */
             showSubmitAlert: false,
             showUpdateAlert: false,
             showDeleteAlert: false,
             showQuestionForm: false,
             showAnswerForm: false,
             showContent: false,
+
+            /* Question variables */
             questionTitle: '',
             questionTitleLenLowerBound: 5,
             questionTitleLenUpperBound: 100,
@@ -192,16 +234,28 @@ export default {
             questionID: '',
             questionContents: {},
             questionContent: '',
+            questionImages: {},
+            questionImage: '',
+            questionImagePreview: '',
             questionContentLenLowerBound: 10,
             questionContentLenUpperBound: 500,
+
+            /* Answer variables */
             answerID: '',
             answerContents: {},
             answerContent: '',
+            answerImages: {},
+            answerImage: '',
+            answerImagePreview: '',
             answerContentLenLowerBound: 10,
             answerContentLenUpperBound: 500,
+
+            /* Form variables */
             textLengthWarning: '',
             isSecret: false,
             isUpdating: false,
+
+            /* Paginator variables */
             paginator: {},
             page: 1,
             pagesize: 5,
@@ -251,6 +305,7 @@ export default {
         await this.getQuestionList();
     },
     methods: {
+        /* Question Methods */
         async getQuestionList() {
             try {
                 const response = await axios.get(`https://localhost:8000/common/question/read/class/`, {
@@ -285,7 +340,9 @@ export default {
                 if (response.status === 200) {
                     const contentData = response.data;
                     this.questionContents[questionID] = contentData.question.content;
+                    this.questionImages[questionID] = contentData.question.image;
                     this.answerContents[questionID] = contentData.question.answer_content;
+                    this.answerImages[questionID] = contentData.question.answer_image;
                 } else {
                     throw new Error('Failed to get question content');
                 }
@@ -309,11 +366,16 @@ export default {
         },
         async submitQuestion() {
             try {
-                const response = await axios.post('https://localhost:8000/common/question/create/class/', {
-                    title: this.questionTitle,
-                    content: this.questionContent,
-                    is_secret: this.isSecret,
-                }, {
+                const formData = new FormData();
+                formData.append('title', this.questionTitle);
+                formData.append('content', this.questionContent);
+                formData.append('is_secret', this.isSecret);
+
+                if (this.questionImage) {
+                    formData.append('image', this.questionImage);
+                }
+
+                const response = await axios.post('https://localhost:8000/common/question/create/class/', formData, {
                     params: {
                         glass_class_id: this.classItem.id,
                     },
@@ -322,6 +384,8 @@ export default {
                 await this.getQuestionList();
                 this.questionTitle = '';
                 this.questionContent = '';
+                this.questionImage = '';
+                this.questionImagePreview = '';
                 this.showQuestionForm = false;
                 this.showSubmitAlert = true;
             } catch (error) {
@@ -331,7 +395,8 @@ export default {
         updateQuestionForm(question) {
             this.questionID = question.id;
             this.questionTitle = question.title;
-            this.questionContent = question.content;
+            this.questionContent = this.questionContents[question.id];
+            this.questionImagePreview = this.questionImages[question.id];
             this.isSecret = question.is_secret;
             this.isUpdating = true;
             this.showQuestionForm = true;
@@ -354,11 +419,16 @@ export default {
         },
         async updateQuestion() {
             try {
-                const response = await axios.post(`https://localhost:8000/common/question/update/class/`, {
-                    title: this.questionTitle,
-                    content: this.questionContent,
-                    is_secret: this.isSecret,
-                }, {
+                const formData = new FormData();
+                formData.append('title', this.questionTitle);
+                formData.append('content', this.questionContent);
+                formData.append('is_secret', this.isSecret);
+
+                if (this.questionImage) {
+                    formData.append('image', this.questionImage);
+                }
+
+                const response = await axios.post(`https://localhost:8000/common/question/update/class/`, formData, {
                     params: {
                         question_id: this.questionID,
                     },
@@ -369,6 +439,8 @@ export default {
                     this.questionID = '';
                     this.questionTitle = '';
                     this.questionContent = '';
+                    this.questionImage = '';
+                    this.questionImagePreview = '';
                     this.isSecret = false;
                     this.showQuestionForm = false;  // Hide the form after submitting the review
                     this.isUpdating = false;
@@ -400,50 +472,26 @@ export default {
                     },
                     withCredentials: true,
                 });
-                await this.getQuestionList();
-                this.showDeleteAlert = true;
+
+                if (response.status === 200) {
+                    this.questionContents[this.questionID] = '';
+                    this.questionImages[this.questionID] = '';
+                    this.answerContents[this.questionID] = '';
+                    this.answerImages[this.questionID] = '';
+
+                    await this.getQuestionList();
+                    this.showDeleteAlert = true;
+                } else {
+                    throw new Error('Failed to delete question');
+                }
+
+                
             } catch (error) {
                 console.error("There was a problem deleting the question.", error);
             }
         },
-        async handleTitleClick(question, event) {
-            event.preventDefault();
-            const questionID = question.id;
 
-            // Content가 보이는 상태라면 조회수를 증가시키지 않음
-            if (this.showContent !== questionID) {
-                if (!this.questionContents[questionID]) {
-                    await this.getQuestionContent(questionID);
-                }
-                await this.increaseViewCount(question);
-                this.showContent = questionID;
-            } else {
-                if (this.answerContent.length > 0) {
-                    this.confirmResetAnswerForm();
-                } else {
-                    this.showAnswerForm = false;
-                }
-                this.showContent = false;
-            }
-
-        },
-        async increaseViewCount(question) {
-            try {
-                const response = await axios.post(`https://localhost:8000/common/question/increase-view-count/`, {}, {
-                    params: {
-                        question_id: question.id,
-                    },
-                    withCredentials: true,
-                });
-                
-                if (response.status === 200) {
-                    const data = response.data;
-                    question.view_count = data.view_count;
-                }
-            }   catch (error) {
-                console.error("There was a problem increasing the view count.", error);
-            }
-        },
+        /* Answer Methods */
         confirmSubmitAnswer(questionID, event) {
             event.preventDefault();
 
@@ -459,25 +507,40 @@ export default {
         },
         async submitAnswer(questionID) {
             try {
-                const response = await axios.post(`https://localhost:8000/common/answer/create/class/`, {
-                    content: this.answerContent,
-                }, {
+                const formData = new FormData();
+                formData.append('content', this.answerContent);
+
+                if (this.answerImage) {
+                    formData.append('image', this.answerImage);
+                }
+
+                const response = await axios.post(`https://localhost:8000/common/answer/create/class/`, formData, {
                     params: {
                         question_id: questionID,
                     },
                     withCredentials: true,
                 });
-                await this.getQuestionList();
-                this.answerContent = '';
-                this.showAnswerForm = false;
-                this.showSubmitAlert = true;
+
+                if (response.status === 200) {
+                    await this.getQuestionList();
+                    await this.getQuestionContent(questionID);
+                    this.answerContent = '';
+                    this.answerImage = '';
+                    this.answerImagePreview = '';
+                    this.showAnswerForm = false;
+                    this.showSubmitAlert = true;
+                } else {    
+                    throw new Error(response.message);
+                }
             } catch (error) {
                 console.error("There was a problem submitting the answer.", error);
             }
         },
         updateAnswerForm(question) {
             this.answerID = question.answer.id;
-            this.answerContent = question.answer.content;
+            this.answerContent = this.answerContents[question.id];
+            this.answerImage = this.answerImages[question.id];
+            this.answerImagePreview = this.answerImages[question.id];
             this.isUpdating = true;
             this.showAnswerForm = question.id;
         },
@@ -496,9 +559,14 @@ export default {
         },
         async updateAnswer() {
             try {
-                const response = await axios.post(`https://localhost:8000/common/answer/update/class/`, {
-                    content: this.answerContent,
-                }, {
+                const formData = new FormData();
+                formData.append('content', this.answerContent);
+
+                if (this.answerImage) {
+                    formData.append('image', this.answerImage);
+                }
+
+                const response = await axios.post(`https://localhost:8000/common/answer/update/class/`, formData, {
                     params: {
                         answer_id: this.answerID,
                     },
@@ -506,8 +574,11 @@ export default {
                 });
                 if (response.status === 200) {
                     await this.getQuestionList(); // Get reviews again to update the list
+                    await this.getQuestionContent(this.questionID);
                     this.answerID = '';
                     this.answerContent = '';
+                    this.answerImage = '';
+                    this.answerImagePreview = '';
                     this.showAnswerForm = false;
                     this.isUpdating = false;
                     this.showUpdateAlert = true;
@@ -529,7 +600,7 @@ export default {
                 return;
             }
         },
-        async deleteAnswer(answerID) {
+        async deleteAnswer(questionID, answerID) {
             try {
                 const response = await axios.delete(`https://localhost:8000/common/answer/delete/class/`, {
                     params: {
@@ -537,12 +608,64 @@ export default {
                     },
                     withCredentials: true,
                 });
-                await this.getQuestionList();
-                this.showDeleteAlert = true;
+                
+                if (response.status === 200) {
+                    this.answerContents[questionID] = '';
+                    this.answerImages[questionID] = '';
+
+                    await this.getQuestionList();
+                    this.showDeleteAlert = true;
+                } else {
+                    throw new Error('Failed to delete answer');
+                }
+
             } catch (error) {
                 console.error("There was a problem deleting the answer.", error);
             }
         },
+
+        /* Content Methods */
+        async handleTitleClick(question, event) {
+            event.preventDefault();
+            const questionID = question.id;
+
+            // Content가 보이는 상태라면 조회수를 증가시키지 않음
+            if (this.showContent !== questionID) {
+                if (this.answerContent.length > 0) {
+                    this.confirmResetAnswerForm();
+                }
+
+                await this.getQuestionContent(questionID);
+                await this.increaseViewCount(question);
+                this.showContent = questionID;
+            } else {
+                if (this.answerContent.length > 0) {
+                    this.confirmResetAnswerForm();
+                } 
+
+                this.showAnswerForm = false;
+                this.showContent = false;
+            }
+        },
+        async increaseViewCount(question) {
+            try {
+                const response = await axios.post(`https://localhost:8000/common/question/increase-view-count/`, {}, {
+                    params: {
+                        question_id: question.id,
+                    },
+                    withCredentials: true,
+                });
+                
+                if (response.status === 200) {
+                    const data = response.data;
+                    question.view_count = data.view_count;
+                }
+            }   catch (error) {
+                console.error("There was a problem increasing the view count.", error);
+            }
+        },
+
+        /* Form Methods */
         toggleQuestionForm() {
             this.showQuestionForm = !this.showQuestionForm;
         },
@@ -572,6 +695,38 @@ export default {
                 this.showAnswerForm = false;
             }
         },
+
+        /* Image Upload Methods */
+        triggerQuestionFileInput() {
+            const fileInput = document.getElementById('question-image-input');
+            fileInput.click();
+        },
+        handleQuestionImageUpload(event) {
+            const file = event.target.files[0];
+            this.questionImage = file;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                this.questionImagePreview = reader.result;
+            };
+            reader.readAsDataURL(file);
+        },
+        triggerAnswerFileInput() {
+            const fileInput = document.getElementById('answer-image-input');
+            fileInput.click();
+        },
+        handleAnswerImageUpload(event) {
+            const file = event.target.files[0];
+            this.answerImage = file;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                this.answerImagePreview = reader.result;
+            };
+            reader.readAsDataURL(file);
+        },
+
+        /* Paginator Methods */
         sortQuestions(criteria) {
             this.activeCriteria = criteria;
             this.page = 1;
@@ -638,7 +793,6 @@ export default {
             if (!dateString) {
                 return '-';
             }
-
             const options = { year: 'numeric', month: '2-digit', day: '2-digit'};
             const date = new Date(dateString);
             return date.toLocaleDateString('ko-KR', options).replace(/\s/g, '');
@@ -698,17 +852,37 @@ export default {
     color: #888888;
 }
 
+.image-btn {
+    width: 100%;
+}
+
+.image-preview {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+}
+
+.image-submit-btn-explaination {
+    font-size: 0.9rem;
+    color: #888888;
+}
+
 .question-btn {
     width: 90px;
 }
 
 /* Question content */
+.content-count {
+    font-size: 0.8rem;
+    color: #888888;
+}
+
 .sort-links {
     color: #888888;
 }
 
 .sort-links a {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: #888888;
 }
 
@@ -743,6 +917,12 @@ export default {
     background-color: #ffffff;
     border-radius: 0.5rem;
     padding: 1rem;
+}
+
+.content-img {
+    border-radius: 0.3rem;
+    max-width: 25%;
+    min-width: 25%;
 }
 
 #control-question-btn {

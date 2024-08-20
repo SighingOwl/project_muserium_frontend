@@ -87,7 +87,7 @@ export default {
     components: {
         flatPickr,
     },
-    props: ['title'],
+    props: ['classID'],
     data() {
         const today = new Date();
         const maxDate = new Date();
@@ -136,8 +136,8 @@ export default {
         }
     },
     mounted() {
-        this.fetchClassDetail();
-        this.fetchReservations();
+        this.getClassDetail();
+        this.getResvations();
         this.updateDisabledDates();
         this.setFixedNavWidth();
         window.addEventListener('resize', this.setFixedNavWidth);
@@ -148,18 +148,24 @@ export default {
         window.removeEventListener('resize', this.setFixedNavWidth);
     },
     methods: {
-        fetchClassDetail() {
-            axios.get(`https://localhost:8000/class/api/${this.title}/`)
-                .then(response => {
-                    this.classItem = response.data;
-                })
-                .catch(error => {
-                    if (error.response && error.response.status === 404) {
-                        this.$router.push({ name: 'NotFound' });
-                    } else {
-                        console.error("Failed to fetch class detail", error);
-                    }
+        async getClassDetail() {
+            try {
+                const response = await axios.get(`https://localhost:8000/class/detail/get_class_detail/`, {
+                    params: {
+                        id: this.classID,
+                    },
                 });
+
+                if (response.status === 200) {
+                    this.classItem = response.data;
+                }
+            } catch (error) {
+                if (error.response && error.response.status === 404) {
+                    this.$router.push({ name: 'NotFound' });
+                } else {
+                    console.error("Failed to fetch class detail", error);
+                }
+            }
         },
         formatTime(time) {
             const [hours, minutes] = time.split(':');
@@ -167,51 +173,61 @@ export default {
             const formattedHours = hours % 12 || 12;
             return `${formattedHours}:${minutes} ${period}`;
         },
-        fetchReservations() {
-            axios.get(`https://localhost:8000/class/api/${this.title}/reservations/`)
-                .then(response => {
-                    this.reservations = response.data;
-                    this.updateDisabledDates();
-                })
-                .catch(error => {
-                    console.error("Failed to fetch reservations", error);
+        async submitReservations() {
+            try {
+                const response = await axios.post(`https://localhost:8000/class/reservations/`, {
+                    class_id: this.classID,
+                    date: this.selectedDate,
+                    time: this.selectedTime,
+                }, {
+                    withCredentials: true,
                 });
-        },
-        updateDisabledDates() {
-            const dateCount = {};
-
-            this.reservations.forEach(reservation => {
-                if (!dateCount[reservation.reservation_date]) {
-                    dateCount[reservation.reservation_date] = 0;
-                }
-                dateCount[reservation.reservation_date]++;
-            });
-
-            this.disabledDates = Object.keys(dateCount).filter(date => dateCount[date] >= this.availableTimes.length);
-        },
-        updateDisabledTimes() {
-            if (!this.selectedDate) {
-                this.disabledTimezones = [];
-            };
-
-            const reservedTimes = [];
-            this.reservations.forEach(reservation => {
-                if (reservation.reservation_date === this.selectedDate) {
-                    reservedTimes.push(reservation.reservation_time);
-                }
-            });
-
-            if (this.selectedDate === this.today) {
-                const now = new Date();
-                const timeUpperBound = new Date(now.getTime() + 90 * 60000);
-                const timeUpperBoundString = `${timeUpperBound.getHours()}:${timeUpperBound.getMinutes()}:00`;
-                const disabledTimes = this.availableTimes.filter(time => time < timeUpperBoundString);
-
-                this.disabledTimezones = [...reservedTimes, ...disabledTimes];
-            } else {
-                this.disabledTimezones = reservedTimes;
+            } catch (error) {
+                console.error("Failed to submit reservation", error);
             }
-            
+        },
+        async getResvations() {
+            try {
+                const response = await axios.get(`https://localhost:8000/class/reservation/list_reservations/`, {
+                    params: {
+                        class_id: this.classID,
+                    },
+                });
+                this.reservations = response.data;
+                this.updateDisabledDates();
+            } catch (error) {
+                console.error("Failed to get reservations", error);
+            }
+        },
+        async updateDisabledDates() {
+            try {
+                const response = await axios.get(`https://localhost:8000/class/reservation/get_disabled_dates/`);
+
+                if (response.status === 200) {
+                    this.disabledDates = response.data;
+                } else {
+                    console.error("Failed to update disabled dates", response);
+                }
+            } catch (error) {
+                console.error("Failed to update disabled dates", error);
+            }
+        },
+        async updateDisabledTimes() {
+            try {
+                const response = await axios.get(`https://localhost:8000/class/reservation/get_disabled_timezones/`, {
+                    params: {
+                        selected_date: this.selectedDate,
+                    },
+                });
+
+                if (response.status === 200) {
+                    this.disabledTimezones = response.data;
+                } else {
+                    console.error("Failed to update disabled times", response);
+                }
+            } catch (error) {
+                console.error("Failed to update disabled times", error);
+            }  
         },
         reserveClass() {
             if (this.selectedDate && this.selectedTime) {
@@ -235,8 +251,6 @@ export default {
             if (nav.style.width === '') {
                 this.setFixedNavWidth();
             }
-
-            console.log(scrollY, this.navTop, navbarHeight);
 
             if (scrollY >= this.navTop - navbarHeight) {
                 nav.classList.add('fixed-nav');

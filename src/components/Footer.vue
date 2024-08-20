@@ -14,15 +14,13 @@
               <div class="footer-legal-links d-flex">
                 <ul class="mg-gf-footer-legal-links list-inline">
                   <li class="list-inline-item">
-                    <a href="#" class="mg-gf-footer-legal-link text-reset">개인정보 처리방침</a>
+                    <a href="#" class="mg-gf-footer-legal-link">개인정보 처리방침 </a>|
                   </li>
-                  <li class="list-inline-item">|</li>
                   <li class="list-inline-item">
-                    <a href="#" class="mg-gf-footer-legal-link text-reset">이용약관</a>
+                    <a href="#" class="mg-gf-footer-legal-link">이용약관 </a>|
                   </li>
-                  <li class="list-inline-item">|</li>
                   <li class="list-inline-item">
-                    <a href="#" class="mg-gf-footer-legal-link text-reset">이용안내</a>
+                    <a href="#" class="mg-gf-footer-legal-link">이용안내</a>
                   </li>
                 </ul>
               </div>
@@ -34,20 +32,20 @@
             <div class="col-md">
               <div class="footer-info">
                 <p id="brand-name">
-                  <span class="footer-info-value text-black">{{ brandName }} | </span>
+                  <span class="footer-info-value ">{{ brandName }}</span> |
                   <span class="footer-info-field">대표자명 </span>
-                  <span class="footer-info-value text-black">{{ ceoName }} | </span>
-                  <span class="footer-info-field text-black">주소 </span>
-                  <span class="footer-info-value text-black">{{ officeAddress }} | </span>
-                  <span class="footer-info-field text-black">전화 </span>
-                  <span class="footer-info-value text-black">{{ phoneNumber }} | </span>
-                  <span class="footer-info-field text-black">사업자등록번호 </span>
-                  <span class="footer-info-value text-black">{{ businessRegistrationNumber }} | </span>
-                  <span class="footer-info-field text-black">통신판매업신고번호 </span>
-                  <span class="footer-info-value text-black">{{ ecommerceRegistrationNumber }}</span>
-                  <a href="#" class="footer-info-value-link text-black">[사업자정보확인]</a>
-                  <span class="footer-info-field text-black"> | 개인정보보호책임자 </span>
-                  <span class="footer-info-value text-black">{{ cpoName }} | </span>
+                  <span class="footer-info-value ">{{ ceoName }}</span> | 
+                  <span class="footer-info-field ">주소 </span>
+                  <span class="footer-info-value ">{{ officeAddress }}</span> |
+                  <span class="footer-info-field ">전화 </span>
+                  <span class="footer-info-value ">{{ phoneNumber }}</span> |
+                  <span class="footer-info-field ">사업자등록번호 </span>
+                  <span class="footer-info-value ">{{ businessRegistrationNumber }}</span> | 
+                  <span class="footer-info-field ">통신판매업신고번호 </span>
+                  <span class="footer-info-value ">{{ ecommerceRegistrationNumber }}</span>
+                  <a href="#" class="footer-info-value-link "> [사업자정보확인]</a> |
+                  <span class="footer-info-field "> 개인정보보호책임자 </span>
+                  <span class="footer-info-value ">{{ cpoName }}</span>
                 </p>
               </div>
             </div>
@@ -80,34 +78,53 @@ export default {
     max-width: 50px;
 }
 .footer-legal-copyright {
-    font-size: 13px;
+    font-size: 0.8rem;
     --bs-text-opacity: .5;
 }
 
 .mg-gf-footer-legal-links {
-    font-size: 13px;
-    margin-top: 3px;
-    margin-left: 5px;
+    font-size: 0.8rem;
+}
+
+.list-inline-item {
+    color: #888888;
 }
 
 .mg-gf-footer-legal-link {
     text-decoration: none;
-    
+    color: #888888;
+}
+
+.mg-gf-footer-legal-link:hover {
+    color: #000000;
+    text-decoration: underline;
+}
+
+.footer-info {
+    font-size: 0.7rem;
+    color: #888888;
 }
 
 .footer-info-field {
-    font-size: 11px;
-    --bs-text-opacity: .8;
+    color: #111111;
+    font-size: 0.7rem;
 }
 
 .footer-info-value {
-    font-size: 11px;
-    --bs-text-opacity: .5;
+    color: #888888;
+    font-size:  0.7rem;
 }
 
 .footer-info-value-link {
-    font-size: 11px;
+    text-decoration: none;
+    color: #888888;
+    font-size:  0.7rem;
     --bs-text-opacity: .8;
+}
+
+.footer-info-value-link:hover {
+    color: #000000;
+    text-decoration: underline;
 }
 
 </style>

@@ -68,7 +68,23 @@
                 <div class="char-counter">{{ reviewContent.length }} / 500</div>
                 <div v-if="textLengthWarning" class="text-warning">{{ textLengthWarning }}</div>
             </div>
-            
+            <div>
+                <input type="file" id="review-image-input" @change="handleImageUpload" hidden/>
+                <button type="button" class="btn btn-outline-dark mt-2 review-image-btn d-flex justify-content-center align-items-center" id="upload-image-from-user" @click="triggerFileInput">
+                    <div v-if="reviewImagePreview">
+                        <img :src="reviewImagePreview" alt="Review Image Preview" class="image-preview"/>
+                    </div>
+                    <div class="ms-5">
+                        <div>
+                            <i class="bi bi-image"></i>
+                            리뷰 사진 업로드
+                        </div>
+                        <div class="image-submit-btn-explaination">
+                            클래스 수업 사진이나 클래스에서 만든 결과물 사진을 업로드해주세요!
+                        </div>
+                    </div>
+                </button>
+            </div>
             <div class="d-flex justify-content-end" id="submit-btn">
                 <button type="button" class="btn btn-outline-dark mt-2 me-2 review-btn" @click="confirmResetForm">취소</button>
                 <button v-if="!isUpdating" type="submit" class="btn btn-dark mt-2 review-btn" :disabled="!isReviewVaild" @click="confirmSubmitReview">리뷰 등록</button>
@@ -81,10 +97,10 @@
         <div class="container mt-4">
             <div class="col-md">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <span>리뷰 </span>
-                        <span class="fw-bold">{{ paginator.count || 0}}</span>
-                        <span>건</span>
+                    <div class="content-count">
+                        <span>Total </span>
+                        <span class="fw-bold text-black">{{ paginator.count || 0}}</span>
+                        <span> reviews</span>
                     </div>
                     <div class="sort-links">
                         <a href="#" @click.prevent="sortReviews('newest')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'newest' }">최신순</a>|
@@ -99,6 +115,7 @@
                     <div class="row">
                         <div class="col-md-8">
                             <p>{{ review.content }}</p>
+                            <img v-if="review.image" :src="review.image" alt="review-image" class="img-fluid mb-2 review-img"/>
                             <div class="d-flex flew-wrap">
                                 <div v-for="(additionalRating, index) in ratings(review)" :key="additionalRating" class="card m-2" :class="getRatingClass(additionalRating)" id="rating-tag-card">
                                     <div class="card-body p-1 d-flex justify-content-center align-items-center" >
@@ -152,19 +169,28 @@ export default {
     props: ['classItem'],
     data() {
         return {
+            /* show variables */
             showForm: false,
             showSubmitAlert: false,
             showUpdateAlert: false,
             showDeleteAlert: false,
+
+            /* pagination variables */
+            paginator: [],
             page: 1,
             pageSize: 5,
             pageOrder: '',
             currentPageGroup: 0,
             pagesPerGroup: 5,
+
+            /* review form variables */
             reviews: [],
-            paginator: [],
+            isUpdating: false,
+            reviewID: '',
             averageRating: 0,
             reviewContent: '',
+            reviewImage: '',
+            reviewImagePreview: '',
             maxTextLength: 500,
             textLengthWarning: '',
             reviewRating: 0,
@@ -175,9 +201,9 @@ export default {
             temporaryReadinessRating: 0,
             contentRating: 0,
             temporaryContentRating: 0,
+
+            /* review sorting variables */
             activeCriteria: 'newest',
-            isUpdating: false,
-            reviewID: '',
         }
     },
     watch: {
@@ -266,22 +292,32 @@ export default {
         },
         async submitReview() {
             try {
-                const response = await axios.post(`https://localhost:8000/common/reviews/create/class/`, {
-                    title: this.reviewTitle,
-                    content: this.reviewContent,
-                    rating: this.reviewRating,
-                    teacher_rating: this.teacherRating,
-                    readiness_rating: this.readinessRating,
-                    content_rating: this.contentRating,
-                }, {
+                const formData = new FormData();
+                formData.append('title', this.reviewTitle);
+                formData.append('content', this.reviewContent);
+                formData.append('rating', this.reviewRating);
+                formData.append('teacher_rating', this.teacherRating);
+                formData.append('readiness_rating', this.readinessRating);
+                formData.append('content_rating', this.contentRating);
+
+                if (this.reviewImage) {
+                    formData.append('image', this.reviewImage);
+                }
+                
+                const response = await axios.post(`https://localhost:8000/common/reviews/create/class/`, formData, {
                     params: {
                         glass_class_id: this.classItem.id,
                     },
                     withCredentials: true,
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
                 });
                 if (response.status === 200) {
                     await this.getReviews(); // Get reviews again to update the list
                     this.reviewContent = '';
+                    this.reviewImage = '';
+                    this.reviewImagePreview = '';
                     this.reviewRating = 0;
                     this.teacherRating = 0;
                     this.readinessRating = 0;
@@ -295,17 +331,12 @@ export default {
                 console.error("There was a problem with your get operation.", error);
             }
         },
-        getStarStyle(star, rating) {
-            const filledPercentage = Math.min(Math.max(rating - (star - 1), 0), 1) * 100;
-            return {
-                background: `linear-gradient(90deg, #000000 ${filledPercentage}%, #cccccc ${filledPercentage}%)`,
-                '-webkit-background-clip': 'text',
-                '-webkit-text-fill-color': 'transparent'
-            };
-        },
+        
         updateReview(review) {
             this.reviewID = review.id;
             this.reviewContent = review.content;
+            this.reviewImage = review.image;
+            this.reviewImagePreview = review.image;
             this.reviewRating = review.rating;
             this.teacherRating = review.teacher_rating;
             this.readinessRating = review.readiness_rating;
@@ -331,23 +362,33 @@ export default {
         },
         async submitUpdatedReview() {
             try {
-                const response = await axios.post(`https://localhost:8000/common/reviews/update/class/`, {
-                    title: this.reviewTitle,
-                    content: this.reviewContent,
-                    rating: this.reviewRating,
-                    teacher_rating: this.teacherRating,
-                    readiness_rating: this.readinessRating,
-                    content_rating: this.contentRating,
-                }, {
+                const formData = new FormData();
+                formData.append('title', this.reviewTitle);
+                formData.append('content', this.reviewContent);
+                formData.append('rating', this.reviewRating);
+                formData.append('teacher_rating', this.teacherRating);
+                formData.append('readiness_rating', this.readinessRating);
+                formData.append('content_rating', this.contentRating);
+
+                if (this.reviewImage) {
+                    formData.append('image', this.reviewImage);
+                }
+
+                const response = await axios.post(`https://localhost:8000/common/reviews/update/class/`, formData, {
                     params: {
                         review_id: this.reviewID,
                     },
                     withCredentials: true,
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
                 });
                 if (response.status === 200) {
                     await this.getReviews(); // Get reviews again to update the list
                     this.reviewID = '';
                     this.reviewContent = '';
+                    this.reviewImage = '';
+                    this.reviewImagePreview = '';
                     this.reviewRating = 0;
                     this.teacherRating = 0;
                     this.readinessRating = 0;
@@ -404,6 +445,8 @@ export default {
                 this.getReviews();
             }
         },
+
+        /* Pagination Methods */
         async handlePrevClick() {
             if (this.page > 1 && this.page % this.pagesPerGroup === 1) {
                 await this.prevPageGroup();
@@ -455,12 +498,22 @@ export default {
                 paginatorElement.scrollIntoView({ behavior: 'smooth' });
             }
         },
+
         formatDate(dateString) {
             const options = { year: 'numeric', month: '2-digit', day: '2-digit'};
             const date = new Date(dateString);
             return date.toLocaleDateString('ko-KR', options).replace(/\s/g, '');
         },
+
         /* Star Rating Methods */
+        getStarStyle(star, rating) {
+            const filledPercentage = Math.min(Math.max(rating - (star - 1), 0), 1) * 100;
+            return {
+                background: `linear-gradient(90deg, #000000 ${filledPercentage}%, #cccccc ${filledPercentage}%)`,
+                '-webkit-background-clip': 'text',
+                '-webkit-text-fill-color': 'transparent'
+            };
+        },
         setRating(rating, label) {
             if (label === 'class') {
                 this.reviewRating = rating;
@@ -536,6 +589,7 @@ export default {
                 }
             }
         },
+        /* Review Form Content Methods */
         limitTextLength() {
             if (this.reviewContent.length > this.maxTextLength) {
                 this.reviewContent = this.reviewContent.slice(0, this.maxTextLength);
@@ -553,6 +607,8 @@ export default {
         },
         resetForm() {
             this.reviewContent = '';
+            this.reviewImage = '';
+            this.reviewImagePreview = '';
             this.reviewRating = 0;
             this.teacherRating = 0;
             this.readinessRating = 0;
@@ -561,6 +617,24 @@ export default {
             this.showForm = false;
             this.isUpdating = false;
         },
+
+        /* Image Upload Methods */
+        triggerFileInput() {
+            const fileInput = document.getElementById('review-image-input');
+            fileInput.click();
+        },
+        handleImageUpload(event) {
+            const file = event.target.files[0];
+            this.reviewImage = file;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                this.reviewImagePreview = reader.result;
+            };
+            reader.readAsDataURL(file);
+        },
+
+        /* review content */
         ratings(review){
             return [ review.teacher_rating, review.readiness_rating, review.content_rating ]
         },
@@ -703,6 +777,21 @@ export default {
     color: #888888;
 }
 
+.review-image-btn {
+    width: 100%;
+}
+
+.image-preview {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+}
+
+.image-submit-btn-explaination {
+    font-size: 0.9rem;
+    color: #888888;
+}
+
 .review-btn {
     width: 90px;
 }
@@ -717,12 +806,17 @@ export default {
 }
 
 /* Review content */
+.content-count {
+    font-size: 0.8rem;
+    color: #888888;
+}
+
 .sort-links {
     color: #888888;
 }
 
 .sort-links a {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: #888888;
 }
 
@@ -737,6 +831,12 @@ export default {
     color: #000000;
 }
 
+.review-img {
+    border-radius: 0.3rem;
+    max-width: 20%;
+    min-width: 20%;
+}
+
 #rating-tag-card {
     font-size: 0.8rem;
     width: 10rem;
@@ -744,19 +844,19 @@ export default {
 }
 
 .high-rating:hover {
-    background-color: #82fb82;
+    background-color: #b2ffb2;
     cursor: pointer;
     border: none;
 }
 
 .medium-rating:hover {
-    background-color: #808080;
+    background-color: #f7f700;
     cursor: pointer;
     border: none;
 }
 
 .low-rating:hover {
-    background-color: #ff3636;
+    background-color: #cccccc;
     cursor: pointer;
     border: none;
 }
