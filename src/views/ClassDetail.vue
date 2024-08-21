@@ -22,10 +22,13 @@
                                 </p>
                             </div>
                             <div class="like-share">
-                                <a href='#' class="me-3 like-btn" @mouseover="onLike = true" @mouseleave="onLike = false" @click="handleLike">
+                                <a v-if="!isLike" class="me-1 btn like-btn" @mouseover="onLike = true" @mouseleave="onLike = false" @click="handleLike">
                                     <i :class="onLike ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
                                 </a>
-                                <a href='#' class="share-btn" @mouseover="onShare = true" @mouseleave="onShare = false" @click="handleShare">
+                                <a v-else class="me-1 btn like-btn" @mouseover="onLike = true" @mouseleave="onLike = false" @click="handleLike">
+                                    <i class='bi bi-heart-fill'></i>
+                                </a>
+                                <a class="btn share-btn" @mouseover="onShare = true" @mouseleave="onShare = false">
                                     <i :class="onShare ? 'bi bi-share-fill' : 'bi bi-share'"></i>
                                 </a>
                             </div>    
@@ -160,6 +163,7 @@ export default {
         this.getClassDetail();
         this.getResvations();
         this.updateDisabledDates();
+        this.getIsLiked();
 
         /* Fixed navigation */
         this.setFixedNavWidth();
@@ -171,6 +175,7 @@ export default {
         window.removeEventListener('resize', this.setFixedNavWidth);
     },
     methods: {
+        /* Initialize class detail page */
         async getClassDetail() {
             try {
                 const response = await axios.get(`https://localhost:8000/class/detail/get_class_detail/`, {
@@ -196,6 +201,59 @@ export default {
             const formattedHours = hours % 12 || 12;
             return `${formattedHours}:${minutes} ${period}`;
         },
+        
+        /* Like, Share */
+        /* 로그인 기능 생성 후 수정 필요 */
+        async handleLike() {
+            this.isLike = !this.isLike;
+
+            try {
+                const response = await axios.post(`https://localhost:8000/common/like/like_class/`, {
+                    class_id: this.classID,
+                    user_id: 1,
+                    is_like: this.isLike,
+                }, {
+                    withCredentials: true,
+                });
+
+                if (response.status === 200) {
+                    console.log("Class like status updated");
+                } else {
+                    console.error(response.error);
+                }
+
+            } catch (error) {
+                console.error("Failed to like class", error);
+            }
+        },
+        async getIsLiked() {
+            try {
+                const response = await axios.get(`https://localhost:8000/common/like/is_like_class/`, {
+                    params: {
+                        class_id: this.classID,
+                        user_id: 1,
+                    },
+                    withCredentials: true,
+                });
+
+                if (response.status === 200) {
+                    this.isLike = response.data.is_like;
+                } else {
+                    console.error(response.error);
+                }
+            } catch (error) {
+                console.error("Failed to get like status", error);
+            }
+        },
+        choosePlatform() {
+            alert('Choose platform to share');
+        },
+        handleShare(platform) {
+
+            alert('Share this class!');
+        },
+
+        /* Reservation */
         async submitReservations() {
             try {
                 const response = await axios.post(`https://localhost:8000/class/reservations/`, {
@@ -259,6 +317,8 @@ export default {
                 alert('Please select both date and time.');
             }
         },
+
+        /* Information Nav */
         setActiveTap(tab) {
             this.activeTab = tab;
         },
@@ -312,6 +372,10 @@ export default {
 
 .share-btn {
     color: #0000ff;
+}
+
+.popover {
+    z-index: 1500 !important;
 }
 
 .form-label {

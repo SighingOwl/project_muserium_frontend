@@ -40,10 +40,11 @@
                 </div>
                 <div class="sort-links">
                     <a href="#" @click.prevent="sortClasses('newest')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'newest'}">신상품</a>|
+                    <a href="#" @click.prevent="sortClasses('rating')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'rating'}">평점순</a>|
+                    <a href="#" @click.prevent="sortClasses('recommended')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'recommend' }">추천순</a>|
                     <a href="#" @click.prevent="sortClasses('title')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'title' }">상품명</a>|
                     <a href="#" @click.prevent="sortClasses('priceLow')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'priceLow' }">낮은 가격</a>|
-                    <a href="#" @click.prevent="sortClasses('priceHigh')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'priceHigh' }">높은 가격</a>|
-                    <a href="#" @click.prevent="sortClasses('recommended')" class="text-decoration-none" :class="{ 'active': activeCriteria === 'recommend' }">추천순</a>
+                    <a href="#" @click.prevent="sortClasses('priceHigh')" class="text-decoration-none" :class="{ 'active': activeCriteria === 'priceHigh' }">높은 가격</a>
                 </div>
             </div>
             <hr class="my-4">
@@ -62,7 +63,7 @@
                                 <div class="d-flex justify-content-between">
                                     <span class="card-text ms-2">
                                         <i class="bi bi-hand-thumbs-up"></i> {{ classItem.likes }}
-                                        <i class="bi bi-star-fill"></i> {{ classItem.interests }}
+                                        <i class="bi bi-star-fill"></i> {{ classItem.average_rating }}
                                     </span>
                                     <router-link :to="{ name: 'ClassDetail', params: { classID: classItem.id } }" class="btn btn-dark ms-2">Learn More</router-link>
                                 </div>
@@ -166,18 +167,27 @@ export default {
         async sortClasses(criteria) {
             if (criteria === 'newest') {
                 this.sortBy = '-created_at';
+                this.activeCriteria = 'newest';
                 await this.getClassesList();
             } else if (criteria === 'title') {
                 this.sortBy = 'title';
+                this.activeCriteria = 'title';
                 await this.getClassesList();
             } else if (criteria === 'priceLow') {
                 this.sortBy = 'price';
+                this.activeCriteria = 'priceLow';
                 await this.getClassesList();
             } else if (criteria === 'priceHigh') {
                 this.sortBy = '-price';
+                this.activeCriteria = 'priceHigh';
                 await this.getClassesList();
             } else if (criteria === 'recommended') {
-                this.sortBy = '-interests';
+                this.sortBy = '-likes';
+                this.activeCriteria = 'recommended';
+                await this.getClassesList();
+            } else if (criteria === 'rating') {
+                this.sortBy = '-average_rating';
+                this.activeCriteria = 'rating';
                 await this.getClassesList();
             }
         },

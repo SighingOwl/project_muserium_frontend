@@ -470,6 +470,7 @@ export default {
                 const response = await axios.delete(`https://localhost:8000/common/question/delete/class/`, {
                     params: {
                         question_id: this.questionID,
+                        user_id: 1,
                     },
                     withCredentials: true,
                 });
@@ -538,6 +539,7 @@ export default {
             }
         },
         updateAnswerForm(question) {
+            this.questionID = question.id;
             this.answerID = question.answer.id;
             this.answerContent = this.answerContents[question.id];
             this.answerImage = this.answerImages[question.id];

@@ -331,7 +331,6 @@ export default {
                 console.error("There was a problem with your get operation.", error);
             }
         },
-        
         updateReview(review) {
             this.reviewID = review.id;
             this.reviewContent = review.content;
@@ -414,8 +413,9 @@ export default {
         },
         async deleteReview() {
             try {
-                const response = await axios.delete(`https://localhost:8000/common/reviews/delete/class`, {
+                const response = await axios.delete(`https://localhost:8000/common/reviews/delete/class/`, {
                     params: {
+                        user_id : 1,
                         review_id: this.reviewID,
                     },
                     withCredentials: true,
