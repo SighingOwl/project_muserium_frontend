@@ -436,6 +436,7 @@ export default {
                 });
                 if (response.status === 200) {
                     await this.getQuestionList(); // Get reviews again to update the list
+                    await this.getQuestionContent(this.questionID);
                     this.questionID = '';
                     this.questionTitle = '';
                     this.questionContent = '';

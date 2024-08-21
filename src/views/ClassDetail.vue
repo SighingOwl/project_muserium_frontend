@@ -10,16 +10,27 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ classItem.title }}</h5>
                         <p class="card-text">{{ classItem.short_description }}</p>
-                        <div class="price-tag">
-                            <p class="card-text" v-if="classItem.discount_rate">
-                                <span class="text-muted text-decoration-line-through">{{ formattedOriginPrice }}원</span>
-                                <br>
-                                <span class="cur_price">{{ classItem.discount_rate }}% {{ formattedDiscountedPrice }}원</span>
-                            </p>
-                            <p class="card-text cur_price" v-else>
-                                {{ formattedOriginPrice }}원
-                            </p>
+                        <div class="d-flex justify-content-between">
+                            <div class="price-tag">
+                                <p v-if="classItem.discount_rate" class="card-text" >
+                                    <span class="text-muted text-decoration-line-through">{{ formattedOriginPrice }}원</span>
+                                    <br>
+                                    <span class="cur_price">{{ classItem.discount_rate }}% {{ formattedDiscountedPrice }}원</span>
+                                </p>
+                                <p v-else class="card-text cur_price" >
+                                    <span>{{ formattedOriginPrice }}원</span>
+                                </p>
+                            </div>
+                            <div class="like-share">
+                                <a href='#' class="me-3 like-btn" @mouseover="onLike = true" @mouseleave="onLike = false" @click="handleLike">
+                                    <i :class="onLike ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                                </a>
+                                <a href='#' class="share-btn" @mouseover="onShare = true" @mouseleave="onShare = false" @click="handleShare">
+                                    <i :class="onShare ? 'bi bi-share-fill' : 'bi bi-share'"></i>
+                                </a>
+                            </div>    
                         </div>
+                        
                         <hr class="mt-4">
                         <form class="container-fluid">
                             <div class="my-3">
@@ -95,6 +106,13 @@ export default {
 
         return {
             classItem: null,
+
+            /* like, share */
+            onLike: false,
+            onShare: false,
+            isLike: false,
+
+            /* class reservation */
             reservations: [],
             today: today,
             maxDate: maxDate,
@@ -103,6 +121,8 @@ export default {
             selectedTime: null,
             availableTimes: ['10:00:00', '12:00:00', '14:00:00', '16:00:00'],
             disabledTimezones: [],
+
+            /* class information nav */
             activeTab: 'details',
             navTop: 0,
         };
@@ -136,9 +156,12 @@ export default {
         }
     },
     mounted() {
+        /* Initialize class detail page */
         this.getClassDetail();
         this.getResvations();
         this.updateDisabledDates();
+
+        /* Fixed navigation */
         this.setFixedNavWidth();
         window.addEventListener('resize', this.setFixedNavWidth);
         window.addEventListener('scroll', this.handleScroll);
@@ -273,8 +296,22 @@ export default {
 </script>
 
 <style scoped>
+/* Class Reservation */
 .cur_price {
     font-size: 1.3rem;
+}
+
+.like-share {
+    font-size: 1.5rem;
+    text-decoration: none;
+}
+
+.like-btn {
+    color: #ff0000;
+}
+
+.share-btn {
+    color: #0000ff;
 }
 
 .form-label {
@@ -288,6 +325,8 @@ export default {
     border-color: #DFE2E6;
     border-style: solid;
 }
+
+/* Class Information Nav */
 
 #class_info_nav_link {
     text-align: center;
