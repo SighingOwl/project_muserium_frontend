@@ -58,8 +58,10 @@ export default {
 
         const handleScroll = () => {
             const scrollY = window.scrollY;
-            if (scrollY >= 10) {
+            if (scrollY > 0) {
                 opacity.value = 0.8;
+            } else {
+                opacity.value = 0;
             }
         };
         onMounted(() => {

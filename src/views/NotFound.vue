@@ -1,6 +1,6 @@
 <template>
     <div class="container text-center">
-        <img :src="brandLogoURL" class="error-img mt-5">
+        <img :src="brandLogoURL" class="logo-img mt-5">
         <h1 class="display-1 mt-5">404</h1>
         <p class="lead">페이지를 찾을 수 없습니다.</p>
         <p class="lead">사이트 관리자에게 문의해주세요.</p>
@@ -25,10 +25,7 @@ export default {
 </script>
 
 <style scoped>
-.container {
-    margin-top: 50px;
-}
-.error-img {
+.logo-img {
     max-width: 25%;
 }
 </style>

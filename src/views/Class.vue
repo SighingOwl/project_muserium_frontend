@@ -1,8 +1,8 @@
 <template>
     <div class="container-fluid">
         <!-- Carousel Start -->
-        <div id="topClassesCarousel" class="carousel slide w-100" data-bs-ride="carousel">
-            <div v-if="topClasses.length" class="carousel-indicators">
+        <div v-if="topClasses.length" id="topClassesCarousel" class="carousel slide w-100" data-bs-ride="carousel">
+            <div class="carousel-indicators">
                 <button v-for="(classItem, index) in topClasses" :key="index" type="button" :data-bs-target="'#topClassesCarousel'" :data-bs-slide-to="index" :class="{ active: index === activeIndex}" :aria-current="index === activeIndex ? 'true' : 'false'" :aria-label="'Slide' + (index + 1)"></button>
             </div>
             <div class="carousel-inner">
@@ -27,6 +27,16 @@
                 <span class="visually-hidden">Next</span>
             </button>
         </div>
+        <div v-else>
+            <div class="d-flex flex-column justify-content-center align-items-center carousel-loading">
+                <div class="spinner-border text-dark" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div class="mt-3">
+                    <span class="ms-2">추천 클래스를 불러오는 중 입니다...</span>
+                </div>
+            </div>
+        </div>
     </div>
     <!-- Carousel End -->
     <!-- Class List Start -->
@@ -49,7 +59,7 @@
             </div>
             <hr class="my-4">
         </div>
-        <div class="row">
+        <div v-if="classData.length" class="row">
             <div class="col-md">
                 <div class="row">
                     <div v-for="(classItem, index) in classData.results" :key="classItem.id" class="col-md-4 mb-4">
@@ -71,6 +81,14 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div v-else>
+            <div class="text-center no-contents">
+                <span>
+                    <i class="bi bi-chat-heart"></i>
+                </span>
+                <p>추가 될 클래스를 기다려주세요!</p>
             </div>
         </div>
         <!-- Paginator Start -->
@@ -111,7 +129,7 @@ export default {
         },
         displayedPages() {
             const start = this.currentPageGroup * this.pagesPerGroup;
-            const end = start + this.pagesPerGroup;
+            const end = start + Math.min(this.pagesPerGroup, this.classData.total_pages);
 
             const page_range = []
             for (let i = start + 1; i < end; i++) {
@@ -127,15 +145,20 @@ export default {
     mounted() {
         this.getTopClasses();
         this.getClassesList();
-        const carouselElement = document.getElementById('topClassesCarousel');
-        carouselElement.addEventListener('slide.bs.carousel', (event) => {
-            this.setActiveIndex(event.to);
-        })
+
+        if (this.topClasses.length) {
+            const carouselElement = document.getElementById('topClassesCarousel');
+            carouselElement.addEventListener('slide.bs.carousel', (event) => {
+                this.setActiveIndex(event.to);
+            })    
+        }
     },
     methods: {
         async getTopClasses() {
             try {
-                const response = await axios.get('https://localhost:8000/class/classes/list_top_classes/')
+                const response = await axios.get('https://localhost:8000/class/classes/list_top_classes/', {
+                    withCredentials: true
+                })
                 if (response.status === 200) {
                     this.topClasses = response.data;
                 } else {
@@ -152,7 +175,8 @@ export default {
                         page: this.page,
                         page_size: this.pagesPerGroup,
                         sort_by: this.sortBy
-                    }
+                    },
+                    withCredentials: true
                 })
 
                 if (response.status === 200) {
@@ -284,6 +308,10 @@ export default {
     border-width: 10px 0 10px 15px;
     border-color: transparent transparent transparent #000000;
     /*border-color: transparent transparent transparent #ffd83c;*/
+}
+
+.carousel-loading {
+    height: 300px;
 }
 
 /* class list */

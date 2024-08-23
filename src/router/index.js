@@ -1,14 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '@/views/Home.vue';
+import Login from '@/views/Login.vue';
 import Class from '@/views/Class.vue';
 import ClassDetail from '@/views/ClassDetail.vue';
 import NotFound from '@/views/NotFound.vue';
 
 const routes = [
   {
-	path: '/',
-	name: 'Home',
-	component: Home,
+    path: '/',
+    name: 'Home',
+    component: Home,
+  },
+  {
+    path: '/login/',
+    name: 'Login',
+    component: Login,
   },
   {
     path: '/class/',

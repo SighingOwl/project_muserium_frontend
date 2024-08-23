@@ -63,8 +63,8 @@ export default {
         };
     },
     mounted() {
-        this.fetchCarouselData();
-        this.fetchCardData();
+        this.getCarouselData();
+        this.getCardData();
         const carouselElement = document.getElementById('main-banner-carousel');
         carouselElement.addEventListener('slide.bs.carousel', (event) => {
             this.setActiveIndex(event.to);
@@ -72,23 +72,37 @@ export default {
         this.loading = this.carousels.map(() => true);
     },
     methods: {
-        fetchCarouselData() {
-            axios.get('https://localhost:8000/api/carousels/')
-                .then(response => {
+        async getCarouselData() {
+            try {
+                const response = await axios.get('https://localhost:8000/main_page/carousels/get_carousel/', {
+                    withCredentials: true,
+                });
+                
+                if (response.status === 200) {
                     this.carousels = response.data;
-                })
-                .catch(error => {
-                    console.error("Failed to fetch carousel data", error);
-                });
+                } else {
+                    console.error("Failed to fetch carousel data", response);
+                }
+
+            } catch(error) {
+                console.error("Failed to fetch carousel data", error);
+            }
         },
-        fetchCardData() {
-            axios.get('https://localhost:8000/api/cards/')
-                .then(response => {
-                    this.cards = response.data;
-                })
-                .catch(error => {
-                    console.error("Failed to fetch card data", error);
+        async getCardData() {
+            try {
+                const response = await axios.get('https://localhost:8000/main_page/cards/get_card/', {
+                    withCredentials: true,
                 });
+                
+                if (response.status === 200) {
+                    this.cards = response.data;
+                } else {
+                    console.error("Failed to fetch card data", response);
+                }
+
+            } catch(error) {
+                console.error("Failed to fetch card data", error);
+            }
         },
         setActiveIndex(index) {
             this.activeIndex = index;
