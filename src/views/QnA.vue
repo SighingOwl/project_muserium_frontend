@@ -308,7 +308,7 @@ export default {
         /* Question Methods */
         async getQuestionList() {
             try {
-                const response = await axios.get(`https://localhost:8000/common/question/read/class/`, {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}common/question/read/class/`, {
                     params: {
                         glass_class_id: this.classItem.id,
                         page: this.page,
@@ -330,7 +330,7 @@ export default {
         },
         async getQuestionContent(questionID) {
             try {
-                const response = await axios.get(`https://localhost:8000/common/question/get-question-content/class/`, {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}common/question/get-question-content/class/`, {
                     params: {
                         question_id: questionID,
                     },
@@ -375,7 +375,7 @@ export default {
                     formData.append('image', this.questionImage);
                 }
 
-                const response = await axios.post('https://localhost:8000/common/question/create/class/', formData, {
+                const response = await axios.post(`${process.env.VUE_APP_API_URL}common/question/create/class/`, formData, {
                     params: {
                         glass_class_id: this.classItem.id,
                     },
@@ -428,7 +428,7 @@ export default {
                     formData.append('image', this.questionImage);
                 }
 
-                const response = await axios.post(`https://localhost:8000/common/question/update/class/`, formData, {
+                const response = await axios.post(`${process.env.VUE_APP_API_URL}common/question/update/class/`, formData, {
                     params: {
                         question_id: this.questionID,
                     },
@@ -467,7 +467,7 @@ export default {
         },
         async deleteQuestion() {
             try {
-                const response = await axios.delete(`https://localhost:8000/common/question/delete/class/`, {
+                const response = await axios.delete(`${process.env.VUE_APP_API_URL}common/question/delete/class/`, {
                     params: {
                         question_id: this.questionID,
                         user_id: 1,
@@ -516,7 +516,7 @@ export default {
                     formData.append('image', this.answerImage);
                 }
 
-                const response = await axios.post(`https://localhost:8000/common/answer/create/class/`, formData, {
+                const response = await axios.post(`${process.env.VUE_APP_API_URL}common/answer/create/class/`, formData, {
                     params: {
                         question_id: questionID,
                     },
@@ -569,7 +569,7 @@ export default {
                     formData.append('image', this.answerImage);
                 }
 
-                const response = await axios.post(`https://localhost:8000/common/answer/update/class/`, formData, {
+                const response = await axios.post(`${process.env.VUE_APP_API_URL}common/answer/update/class/`, formData, {
                     params: {
                         answer_id: this.answerID,
                     },
@@ -605,7 +605,7 @@ export default {
         },
         async deleteAnswer(questionID, answerID) {
             try {
-                const response = await axios.delete(`https://localhost:8000/common/answer/delete/class/`, {
+                const response = await axios.delete(`${process.env.VUE_APP_API_URL}common/answer/delete/class/`, {
                     params: {
                         answer_id: answerID,
                     },
@@ -652,7 +652,7 @@ export default {
         },
         async increaseViewCount(question) {
             try {
-                const response = await axios.post(`https://localhost:8000/common/question/increase-view-count/`, {}, {
+                const response = await axios.post(`${process.env.VUE_APP_API_URL}common/question/increase-view-count/`, {}, {
                     params: {
                         question_id: question.id,
                     },

@@ -12,11 +12,16 @@ import axios from 'axios';
 export default {
     async mounted() {
         await this.getCsrfToken();
+        setInterval(async () => {
+            if (this.$store.getters.getIsLogin !== false) {
+                await this.$store.dispatch('refreshToken');
+            }
+        }, 60 * 60 * 1000);
     },
     methods: {
         async getCsrfToken() {
             try {
-                const response = await axios.get('https://localhost:8000/common/get-csrf-token/', {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}common/get-csrf-token/`, {
                     withCredentials: true,
                 });
                 axios.defaults.headers.common['X-CSRFToken'] = response.data.csrfToken;

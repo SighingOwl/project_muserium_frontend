@@ -74,7 +74,7 @@ export default {
     methods: {
         async getCarouselData() {
             try {
-                const response = await axios.get('https://localhost:8000/main_page/carousels/get_carousel/', {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}main_page/carousels/get_carousel/`, {
                     withCredentials: true,
                 });
                 
@@ -90,7 +90,7 @@ export default {
         },
         async getCardData() {
             try {
-                const response = await axios.get('https://localhost:8000/main_page/cards/get_card/', {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}main_page/cards/get_card/`, {
                     withCredentials: true,
                 });
                 

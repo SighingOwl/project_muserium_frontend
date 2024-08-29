@@ -1,5 +1,5 @@
 <template>
-    <nav :class="navbarClasses" id="mg-global-navbar">
+    <nav v-if="showNavbar" :class="navbarClasses" id="mg-global-navbar">
         <div class="container-fluid d-flex">
             <a class="navbar-brand mx-5 me-auto my-1" href="/">
                 <img :src="brandLogoURL" alt="Musetium Logo" id="mg-nav-logo">
@@ -30,6 +30,32 @@
                         </ul>
                     </li>
                 </ul>
+            </div>
+            <div class="collapse navbar-collapse d-flex justify-content-end me-5" id="navbarNav">
+                <div class="d-flex justify-content-end">
+                    <ul class="navbar-nav d-flex flex-row ml-auto">
+                        <li v-if="!isLogin" class="nav-item me-3" :class="{ active: isActive('login/')}">
+                            <a class="nav-link" id="mg-nav-login" href="/login/">
+                                <i class="fas fa-user"></i> Login
+                            </a>
+                        </li>
+                        <li v-if="!isLogin" class="nav-item" :class="{ active: isActive('signup/')}">
+                            <a class="nav-link" id="mg-nav-signup" href="/signup/">
+                                <i class="fas fa-user-plus"></i> Sign Up
+                            </a>
+                        </li>
+                        <li v-if="isLogin" class="nav-item">
+                            <a class="nav-link" id="mg-nav-user">
+                                <i class="fas fa-user"></i> {{ this.getUserInfo.name }} 님
+                            </a>
+                        </li>
+                        <li v-if="isLogin" class="nav-item">
+                            <a class="nav-link" id="mg-nav-logout" @click="logoutSubmit">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                    </ul>    
+                </div>
             </div>
         </div>
     </nav>
@@ -69,7 +95,6 @@ export default {
         });
         onUnmounted(() => {
             window.removeEventListener('scroll', handleScroll);
-            console.log(process.env.VUE_APP_BRAND_NAVBAR_LOGO_URL);
         });
         return {
             navbarClasses,
@@ -77,6 +102,15 @@ export default {
         };
     },
     computed: {
+        showNavbar() {
+            return this.$store.getters.getShowNavbar;
+        },
+        isLogin() {
+            return this.$store.getters.getIsLogin;
+        },
+        getUserInfo() {
+            return this.$store.getters.getUserInfo;
+        },
         currentPath() {
             return window.location.pathname;
         }
@@ -84,6 +118,12 @@ export default {
     methods: {
         isActive(path) {
             return this.currentPath.includes(path);
+        },
+        logoutSubmit() {
+            this.$store.dispatch('logout')
+                .then(() => {
+                    window.location.reload();
+                });
         }
     }
 };

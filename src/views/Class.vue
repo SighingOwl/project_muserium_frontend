@@ -156,7 +156,7 @@ export default {
     methods: {
         async getTopClasses() {
             try {
-                const response = await axios.get('https://localhost:8000/class/classes/list_top_classes/', {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}class/classes/list_top_classes/`, {
                     withCredentials: true
                 })
                 if (response.status === 200) {
@@ -170,7 +170,7 @@ export default {
         },
         async getClassesList() {
             try {
-                const response = await axios.get('https://localhost:8000/class/classes/list_classes/', {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}class/classes/list_classes/`, {
                     params: {
                         page: this.page,
                         page_size: this.pagesPerGroup,

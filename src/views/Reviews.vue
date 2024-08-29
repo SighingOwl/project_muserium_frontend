@@ -257,7 +257,7 @@ export default {
         },
         async getReviews() {
             try {
-                const response = await axios.get(`https://localhost:8000/common/reviews/read/class/`,{
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}common/reviews/read/class/`,{
                     params: {
                         glass_class_id: this.classItem.id,
                         page: this.page,
@@ -304,7 +304,7 @@ export default {
                     formData.append('image', this.reviewImage);
                 }
                 
-                const response = await axios.post(`https://localhost:8000/common/reviews/create/class/`, formData, {
+                const response = await axios.post(`${process.env.VUE_APP_API_URL}common/reviews/create/class/`, formData, {
                     params: {
                         glass_class_id: this.classItem.id,
                     },
@@ -373,7 +373,7 @@ export default {
                     formData.append('image', this.reviewImage);
                 }
 
-                const response = await axios.post(`https://localhost:8000/common/reviews/update/class/`, formData, {
+                const response = await axios.post(`${process.env.VUE_APP_API_URL}common/reviews/update/class/`, formData, {
                     params: {
                         review_id: this.reviewID,
                     },
@@ -413,7 +413,7 @@ export default {
         },
         async deleteReview() {
             try {
-                const response = await axios.delete(`https://localhost:8000/common/reviews/delete/class/`, {
+                const response = await axios.delete(`${process.env.VUE_APP_API_URL}common/reviews/delete/class/`, {
                     params: {
                         user_id : 1,
                         review_id: this.reviewID,

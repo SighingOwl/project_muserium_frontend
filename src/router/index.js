@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '@/views/Home.vue';
 import Login from '@/views/Login.vue';
+import SocialLoginCancel from '@/views/SocialLoginCancel.vue';
+import ProceedLogin from '@/views/ProceedLogin.vue';
 import Class from '@/views/Class.vue';
 import ClassDetail from '@/views/ClassDetail.vue';
 import NotFound from '@/views/NotFound.vue';
@@ -15,6 +17,16 @@ const routes = [
     path: '/login/',
     name: 'Login',
     component: Login,
+  },
+  {
+    path: '/social-login-cancel/',
+    name: 'SocialLoginCancel',
+    component: SocialLoginCancel,
+  },
+  {
+    path: '/proceed-login/:pathMatch(.*)*',
+    name: 'ProceedLogin',
+    component: ProceedLogin,
   },
   {
     path: '/class/',

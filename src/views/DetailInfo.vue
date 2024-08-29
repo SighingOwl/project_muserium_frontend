@@ -32,7 +32,7 @@ export default {
     methods: {
         async getDetailImages() {
             try {
-                const response = await axios.get(`https://localhost:8000/common/detail-info/get_detail_info/`, {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}common/detail-info/get_detail_info/`, {
                     params : {
                         class_id: this.classItem.id,
                     },

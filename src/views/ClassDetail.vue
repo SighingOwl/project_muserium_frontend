@@ -178,7 +178,7 @@ export default {
         /* Initialize class detail page */
         async getClassDetail() {
             try {
-                const response = await axios.get(`https://localhost:8000/class/detail/get_class_detail/`, {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}class/detail/get_class_detail/`, {
                     params: {
                         id: this.classID,
                     },
@@ -208,7 +208,7 @@ export default {
             this.isLike = !this.isLike;
 
             try {
-                const response = await axios.post(`https://localhost:8000/common/like/like_class/`, {
+                const response = await axios.post(`${process.env.VUE_APP_URL}common/like/like_class/`, {
                     class_id: this.classID,
                     user_id: 1,
                     is_like: this.isLike,
@@ -228,7 +228,7 @@ export default {
         },
         async getIsLiked() {
             try {
-                const response = await axios.get(`https://localhost:8000/common/like/is_like_class/`, {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}common/like/is_like_class/`, {
                     params: {
                         class_id: this.classID,
                         user_id: 1,
@@ -256,7 +256,7 @@ export default {
         /* Reservation */
         async submitReservations() {
             try {
-                const response = await axios.post(`https://localhost:8000/class/reservations/`, {
+                const response = await axios.post(`${process.env.VUE_APP_API_URL}class/reservations/`, {
                     class_id: this.classID,
                     date: this.selectedDate,
                     time: this.selectedTime,
@@ -269,7 +269,7 @@ export default {
         },
         async getResvations() {
             try {
-                const response = await axios.get(`https://localhost:8000/class/reservation/list_reservations/`, {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}class/reservation/list_reservations/`, {
                     params: {
                         class_id: this.classID,
                     },
@@ -282,7 +282,7 @@ export default {
         },
         async updateDisabledDates() {
             try {
-                const response = await axios.get(`https://localhost:8000/class/reservation/get_disabled_dates/`);
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}class/reservation/get_disabled_dates/`);
 
                 if (response.status === 200) {
                     this.disabledDates = response.data;
@@ -295,7 +295,7 @@ export default {
         },
         async updateDisabledTimes() {
             try {
-                const response = await axios.get(`https://localhost:8000/class/reservation/get_disabled_timezones/`, {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}class/reservation/get_disabled_timezones/`, {
                     params: {
                         selected_date: this.selectedDate,
                     },
