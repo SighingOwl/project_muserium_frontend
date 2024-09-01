@@ -19,7 +19,7 @@
                     <button type="submit" class="btn btn-outline-dark col-md-7 mb-3" @click="handleLogin('server')">로그인</button>
                 </div>
                 <div class="d-flex justify-content-end">
-                    <a href="#" class="id-password-recover">이메일 / 비밀번호 찾기</a>
+                    <a href="/restore-accounts/" class="id-password-recover">이메일 / 비밀번호 찾기</a>
                 </div>
             </form>
             <hr>

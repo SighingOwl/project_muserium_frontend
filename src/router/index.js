@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '@/views/Home.vue';
 import Login from '@/views/Login.vue';
+import RestoreAccounts from '../views/RestoreAccounts.vue';
 import SocialLoginCancel from '@/views/SocialLoginCancel.vue';
 import ProceedLogin from '@/views/ProceedLogin.vue';
 import IdVerification from '../views/IdVerification.vue';
@@ -19,6 +20,11 @@ const routes = [
     path: '/login/',
     name: 'Login',
     component: Login,
+  },
+  {
+    path: '/restore-accounts/',
+    name: 'RestoreAccounts',
+    component: RestoreAccounts,
   },
   {
     path: '/social-login-cancel/',
