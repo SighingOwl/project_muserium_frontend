@@ -31,7 +31,8 @@ const loginStore = {
         },
     },
     actions: {
-        async login({ commit, dispatch }, payload) {
+        // 이메일, 비밀번호로 로그인
+        async login({ commit }, payload) {
             const config = {
                 withCredentials: true,
             }
@@ -58,6 +59,7 @@ const loginStore = {
                     }
                 })
         },
+        // 사용자 입력 정보로 회원가입
         async register({ commit }, payload) {
             await axios
                 .post(`${process.env.VUE_APP_API_URL}/accounts/auth/register/`, payload, {
@@ -78,6 +80,7 @@ const loginStore = {
                     console.error(error);
                 });
         },
+        // 사용자 정보를 서버에 요청
         async getUserData({ commit }) {
             const accessToken = localStorage.getItem('accessToken')
 
@@ -94,7 +97,7 @@ const loginStore = {
                     const userData = {
                         email: response.data.email,
                         name: response.data.name,
-                        phone: response.data.phone_number,
+                        mobile: response.data.mobile,
                     }
                     commit('setUserData', userData)
                 })
@@ -102,6 +105,7 @@ const loginStore = {
                     alert('Fail to get user data.', error)
                 })
         },
+        // 로그아웃
         async logout({ commit, state }) {
             const naverToken = localStorage.getItem('naverToken', null)
             const config = {
@@ -118,23 +122,21 @@ const loginStore = {
                     .then((response) => {
                         if (response.status === 200) {
                             commit('logoutSuccess')
-                        } else {
-                            alert('Fail to logout.')
-                        }
+                        } 
                     })
                     .catch((error) => {
-                        alert('Fail to logout.', error)
+                        if (error.response.status === 401) {
+                            commit('logoutSuccess')
+                        }
                     })
             } else {
                 await axios
-                    .post(`${process.env.VUE_APP_API_URL}accounts/naver/logout/`, {
+                    .post(`${process.env.VUE_APP_API_URL}accounts/auth/logout/`, {
                         'naver_token': naverToken,
                     }, config)
                     .then((response) => {
                         if (response.status === 200) {
                             commit('logoutSuccess')
-                        } else {
-                            alert('Fail to logout.')
                         }
                     })
                     .catch((error) => {
@@ -142,6 +144,7 @@ const loginStore = {
                     })    
             }
         },
+        // 네이버 로그인
         async socialLoginToDjango({ commit, dispatch }) {
             const token = localStorage.getItem('naverToken')
             const code = localStorage.getItem('naverCode')
@@ -156,21 +159,20 @@ const loginStore = {
                 } )
                 .then(async (response) => {
                     if (response.status === 200) {
-                        console.log(response.data)
                         localStorage.setItem('accessToken', response.data.access)
                         localStorage.setItem('refreshToken', response.data.refresh)
                         localStorage.removeItem('naverCode')
                         await dispatch('getNaverUserData')
                         commit('loginSuccess', 'naver')
-                    } else {
-                        alert('Fail to login to Django.')
                     }
                 })
                 .catch((error) => {
                     alert('Fail to login to Django.', error)
+                    console.log(error.response)
                 })
         },
-        async getNaverUserData({ commit, state }) {
+        // 네이버 로그인 후 사용자 정보 요청
+        async getNaverUserData({ commit }) {
             const naverToken = localStorage.getItem('naverToken', null)
             const accessToken = localStorage.getItem('accessToken')
 
@@ -187,20 +189,15 @@ const loginStore = {
             await axios
                 .get(`${process.env.VUE_APP_API_URL}accounts/naver-userdata/get/`, config)
                 .then((response) => {
-                    const userData = {
-                        email: response.data.email,
-                        name: response.data.name,
-                        phone: response.data.phone_number,
-                        nickname: response.data.nickname,
-                    }
+                    const userData = response.data
                     commit('setUserData', userData)
-                    console.log(state.userInfo)
                 })
                 .catch((error) => {
                     alert('Fail to get user data.', error)
+                    console.log(error.response)
                 })
         },
-        async refreshToken() {
+        async refreshToken({ dispatch }) {
             const refreshToken = localStorage.getItem('refreshToken')
 
             axios
@@ -217,8 +214,13 @@ const loginStore = {
                     }
                 })
                 .catch((error) => {
-                    alert('Fail to refresh token.', error)
+                    alert('로그인이 만료되었습니다. 다시 로그인해주세요.', error)
+                    dispatch('logout')
+                    router.push('/login/')
                 })
+        },
+        async updateUserData({ commit }, payload) {
+            commit('setUserData', payload)
         }
     }
 }

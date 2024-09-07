@@ -49,6 +49,7 @@ export default {
             }
             await this.$store.dispatch('socialLoginToDjango');
 
+            
             if (this.isLogin){
                 window.close();        
             }

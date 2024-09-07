@@ -6,8 +6,10 @@ import SocialLoginCancel from '@/views/SocialLoginCancel.vue';
 import ProceedLogin from '@/views/ProceedLogin.vue';
 import IdVerification from '../views/IdVerification.vue';
 import Signup from '@/views/Signup.vue';
+import MyPage from '@/views/MyPage.vue';
 import Class from '@/views/Class.vue';
 import ClassDetail from '@/views/ClassDetail.vue';
+import CustomerSupport from '@/views/CustomerSupport.vue';
 import NotFound from '@/views/NotFound.vue';
 
 const routes = [
@@ -47,6 +49,11 @@ const routes = [
     component: Signup,
   },
   {
+    path: '/my-page/',
+    name: 'MyPage',
+    component: MyPage,
+  },
+  {
     path: '/class/',
     name: 'Class',
     component: Class,
@@ -56,6 +63,11 @@ const routes = [
     name: 'ClassDetail',
     component: ClassDetail,
     props: true
+  },
+  {
+    path: '/support/',
+    name: 'CustomerSupport',
+    component: CustomerSupport,
   },
   {
     path: '/:pathMatch(.*)*', 

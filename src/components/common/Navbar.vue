@@ -21,12 +21,10 @@
                     <li class="nav-item dropdown mx-4">
                         <a class="nav-link dropdown-toggle no-arrow" :class="{ active: isActive('support/')}" id="mg-nav-support" href="/support/">Support</a>
                         <ul class="dropdown-menu">
-                            <li><h6 class="dropdown-header">Support</h6></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" id="notice" href="#">Notice</a></li>
-                            <li><a class="dropdown-item" id="shipping" href="#">Shipping</a></li>
-                            <li><a class="dropdown-item" id="faq" href="#">FAQ</a></li>
-                            <li><a class="dropdown-item" id="contact" href="#">Contact</a></li>
+                            <li><a href="#" class="dropdown-item" id="notice">Notice</a></li>
+                            <li><a href="#" class="dropdown-item" id="shipping">Shipping</a></li>
+                            <li><a href="#" class="dropdown-item" id="faq">FAQ</a></li>
+                            <li><a href="#" class="dropdown-item" id="contact">Contact</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -34,20 +32,25 @@
             <div class="collapse navbar-collapse d-flex justify-content-end me-5" id="navbarNav">
                 <div class="d-flex justify-content-end">
                     <ul class="navbar-nav d-flex flex-row ml-auto">
-                        <li v-if="!isLogin" class="nav-item me-3" :class="{ active: isActive('login/')}">
-                            <a class="nav-link" id="mg-nav-login" href="/login/">
+                        <li v-if="!isLogin" class="nav-item me-3">
+                            <a href="/login/" class="nav-link" id="mg-nav-login" >
                                 <i class="fas fa-user"></i> Login
                             </a>
                         </li>
-                        <li v-if="!isLogin" class="nav-item" :class="{ active: isActive('signup/')}">
-                            <a class="nav-link" id="mg-nav-signup" href="/signup/">
+                        <li v-if="!isLogin" class="nav-item">
+                            <a href="/signup/" class="nav-link" id="mg-nav-signup" >
                                 <i class="fas fa-user-plus"></i> Sign Up
                             </a>
                         </li>
-                        <li v-if="isLogin" class="nav-item">
-                            <a class="nav-link" id="mg-nav-user">
+                        <li v-if="isLogin" class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle no-arrow" id="mg-nav-user">
                                 <i class="fas fa-user"></i> {{ this.getUserInfo.name }} 님
                             </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" id="myPage" @click="handleUserPage('mypage')">마이페이지</a></li>
+                                <li><a class="dropdown-item" id="orderList" @click="handleUserPage('orderlist')">주문 내역</a></li>
+                                <li><a class="dropdown-item" id="reserveList" @click="handleUserPage('reservelist')">클래스 예약 내역</a></li>
+                            </ul>
                         </li>
                         <li v-if="isLogin" class="nav-item">
                             <a class="nav-link" id="mg-nav-logout" @click="logoutSubmit">
@@ -63,15 +66,17 @@
 
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 
 export default {
     data() {
         return {
             brandLogoURL: process.env.VUE_APP_BRAND_NAVBAR_LOGO_URL,
-        }
+        };
     },
     setup() {
         const opacity = ref(0);
+        const router = useRouter();
 
         const navbarClasses = computed(() => ({
             'navbar': true,
@@ -84,21 +89,25 @@ export default {
 
         const handleScroll = () => {
             const scrollY = window.scrollY;
-            if (scrollY > 0) {
-                opacity.value = 0.8;
-            } else {
-                opacity.value = 0;
-            }
+            opacity.value = scrollY > 0 ? 0.8 : 0;
         };
+
+        const handleUserPage = (menu) => {
+            router.push(`/my-page/`, {params: { menu } });
+        };
+
         onMounted(() => {
             window.addEventListener('scroll', handleScroll);
         });
+
         onUnmounted(() => {
             window.removeEventListener('scroll', handleScroll);
         });
+
         return {
-            navbarClasses,
             opacity,
+            navbarClasses,
+            handleUserPage,
         };
     },
     computed: {
@@ -113,7 +122,7 @@ export default {
         },
         currentPath() {
             return window.location.pathname;
-        }
+        },
     },
     methods: {
         isActive(path) {
@@ -122,10 +131,10 @@ export default {
         logoutSubmit() {
             this.$store.dispatch('logout')
                 .then(() => {
-                    window.location.reload();
+                    this.$router.push('/');
                 });
-        }
-    }
+        },
+    },
 };
 </script>
 
