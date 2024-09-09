@@ -1,6 +1,7 @@
 <template>
     <div>
-        <h2>회원정보 수정</h2>
+        <span class="list-header">회원정보 수정</span>
+        <hr>
         <form @submit.prevent="submitForm" class="mt-5">
             <div class="row mb-3">
                 <div class="col-md-2">
@@ -71,7 +72,6 @@
                         </div>
                         
                     </div>  
-                    
                 </div>
             </div>
             <div class="d-flex justify-content-center">
@@ -237,6 +237,10 @@ export default {
 </script>
 
 <style scoped>
+.list-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
 .submit-btn {
     width: 100px;
     margin-top: 20px;

@@ -47,9 +47,9 @@
                                 <i class="fas fa-user"></i> {{ this.getUserInfo.name }} 님
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" id="myPage" @click="handleUserPage('mypage')">마이페이지</a></li>
-                                <li><a class="dropdown-item" id="orderList" @click="handleUserPage('orderlist')">주문 내역</a></li>
-                                <li><a class="dropdown-item" id="reserveList" @click="handleUserPage('reservelist')">클래스 예약 내역</a></li>
+                                <li><a class="dropdown-item" id="myPage" @click="handleUserPage('SummaryUser')">마이페이지</a></li>
+                                <li><a class="dropdown-item" id="orderList" @click="handleUserPage('OrderHistory')">주문 내역</a></li>
+                                <li><a class="dropdown-item" id="reserveList" @click="handleUserPage('ClassReservation')">클래스 예약 내역</a></li>
                             </ul>
                         </li>
                         <li v-if="isLogin" class="nav-item">
@@ -92,8 +92,8 @@ export default {
             opacity.value = scrollY > 0 ? 0.8 : 0;
         };
 
-        const handleUserPage = (menu) => {
-            router.push(`/my-page/`, {params: { menu } });
+        const handleUserPage = (tab) => {
+            router.push({ name: 'MyPage', params: { tab: tab } });
         };
 
         onMounted(() => {
