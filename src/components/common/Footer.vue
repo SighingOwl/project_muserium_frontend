@@ -79,6 +79,13 @@
 </script>
 
 <style scoped>
+#globalfooter {
+    position: fixed;
+    bottom: 3em;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+}
 #mg-gf-footer-logo-img {
     max-width: 50px;
 }

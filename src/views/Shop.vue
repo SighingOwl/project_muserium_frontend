@@ -1,28 +1,27 @@
 <template>
     <div class="container-fluid">
         <!-- Carousel Start -->
-        <div v-if="topClasses.length" id="topClassesCarousel" class="carousel slide w-100" data-bs-ride="carousel">
+        <div v-if="topProducts.length" id="topProductsCarousel" class="carousel slide w-100" data-bs-ride="carousel">
             <div class="carousel-indicators">
-                <button v-for="(classItem, index) in topClasses" :key="index" type="button" :data-bs-target="'#topClassesCarousel'" :data-bs-slide-to="index" :class="{ active: index === activeIndex}" :aria-current="index === activeIndex ? 'true' : 'false'" :aria-label="'Slide' + (index + 1)"></button>
+                <button v-for="(productItem, index) in topProducts" :key="index" type="button" :data-bs-target="'#topProductsCarousel'" :data-bs-slide-to="index" :class="{ active: index === activeIndex}" :aria-current="index === activeIndex ? 'true' : 'false'" :aria-label="'Slide' + (index + 1)"></button>
             </div>
             <div class="carousel-inner">
-                <div class="carousel-item" :class="{ active: index === 0 }" v-for="(classItem, index) in topClasses" :key="classItem.id">
+                <div class="carousel-item" :class="{ active: index === 0 }" v-for="(productItem, index) in topProducts" :key="productItem.id">
                     <div class="d-flex justify-content-center align-items-center">
-                        <img :src="classItem.image_url" class=" img-fluid carousel-img" alt="Class Image">
+                        <img :src="productItem.image_url" class=" img-fluid carousel-img" alt="Product Image">
                         <div class="ms-4">
-                            <h5>{{ classItem.title }}</h5>
-                            <p>{{ classItem.short_description }} ddddddfasdfkljasdfkl;jalsjd</p>
-                            <router-link :to="{ name: 'ClassDetail', params: { classID: classItem.id } }" class="btn btn-dark ms-2">Learn More</router-link>
+                            <h5>{{ productItem.title }}</h5>
+                            <p>{{ productItem.short_description }}</p>
+                            <router-link :to="{ name: 'ProductDetail', params: { productID: productItem.id } }" class="btn btn-dark ms-2">Learn More</router-link>
                         </div>
-                        
                     </div> 
                 </div>
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#topClassesCarousel" data-bs-slide="prev">
+            <button class="carousel-control-prev" type="button" data-bs-target="#topProductsCarousel" data-bs-slide="prev">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                 <span class="visually-hidden">Previous</span>
             </button>
-            <button class="carousel-control-next carousel-button" type="button" data-bs-target="#topClassesCarousel" data-bs-slide="next">
+            <button class="carousel-control-next carousel-button" type="button" data-bs-target="#topProductsCarousel" data-bs-slide="next">
                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
                 <span class="visually-hidden">Next</span>
             </button>
@@ -33,49 +32,49 @@
                     <span class="visually-hidden">Loading...</span>
                 </div>
                 <div class="mt-3">
-                    <span class="ms-2">추천 클래스를 불러오는 중 입니다...</span>
+                    <span class="ms-2">추천 상품을 불러오는 중 입니다...</span>
                 </div>
             </div>
         </div>
     </div>
     <!-- Carousel End -->
-    <!-- Class List Start -->
+    <!-- Product List Start -->
     <div class="container">
         <div class="col-md">
             <div class="d-flex justify-content-between align-items-center mb-3 card-header">
                 <div class="content-count">
                     <span>Total </span>
-                    <span class="fw-bold text-black">{{ classData.count || 0}}</span>
-                    <span> classes</span>
+                    <span class="fw-bold text-black">{{ productData.count || 0}}</span>
+                    <span> products</span>
                 </div>
                 <div class="sort-links">
-                    <a href="#" @click.prevent="sortClasses('newest')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'newest'}">신규 클래스</a>|
-                    <a href="#" @click.prevent="sortClasses('rating')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'rating'}">평점순</a>|
-                    <a href="#" @click.prevent="sortClasses('recommended')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'recommend' }">추천순</a>|
-                    <a href="#" @click.prevent="sortClasses('title')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'title' }">상품명</a>|
-                    <a href="#" @click.prevent="sortClasses('priceLow')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'priceLow' }">낮은 가격</a>|
-                    <a href="#" @click.prevent="sortClasses('priceHigh')" class="text-decoration-none" :class="{ 'active': activeCriteria === 'priceHigh' }">높은 가격</a>
+                    <a href="#" @click.prevent="sortProducts('newest')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'newest'}">신상품</a>|
+                    <a href="#" @click.prevent="sortProducts('rating')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'rating'}">평점순</a>|
+                    <a href="#" @click.prevent="sortProducts('recommended')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'recommend' }">추천순</a>|
+                    <a href="#" @click.prevent="sortProducts('title')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'title' }">상품명</a>|
+                    <a href="#" @click.prevent="sortProducts('priceLow')" class="text-decoration-none me-2" :class="{ 'active': activeCriteria === 'priceLow' }">낮은 가격</a>|
+                    <a href="#" @click.prevent="sortProducts('priceHigh')" class="text-decoration-none" :class="{ 'active': activeCriteria === 'priceHigh' }">높은 가격</a>
                 </div>
             </div>
             <hr class="my-4">
         </div>
-        <div v-if="classData.length" class="row">
+        <div v-if="productData.length" class="row">
             <div class="col-md">
                 <div class="row">
-                    <div v-for="(classItem, index) in classData.results" :key="classItem.id" class="col-md-4 mb-4">
+                    <div v-for="(productItem, index) in productData.results" :key="productItem.id" class="col-md-4 mb-4">
                         <div class="card no-border">
                             <div class="my-2 mx-2">
-                                <img :src="classItem.image_url" class="card-img-top card-img-size img-fluid" alt="Class Image">
+                                <img :src="productItem.image_url" class="card-img-top card-img-size img-fluid" alt="Product Image">
                             </div>
                             <div class="card-body">
-                                <h5 class="card-title">{{ classItem.title }}</h5>
-                                <p class="card-text">{{ classItem.short_description }}</p>
+                                <h5 class="card-title">{{ productItem.title }}</h5>
+                                <p class="card-text">{{ productItem.short_description }}</p>
                                 <div class="d-flex justify-content-between">
                                     <span class="card-text ms-2">
-                                        <i class="bi bi-hand-thumbs-up"></i> {{ classItem.likes }}
-                                        <i class="bi bi-star-fill"></i> {{ classItem.average_rating }}
+                                        <i class="bi bi-hand-thumbs-up"></i> {{ productItem.likes }}
+                                        <i class="bi bi-star-fill"></i> {{ productItem.average_rating }}
                                     </span>
-                                    <router-link :to="{ name: 'ClassDetail', params: { classID: classItem.id } }" class="btn btn-dark ms-2">Learn More</router-link>
+                                    <router-link :to="{ name: 'ProductDetail', params: { productID: productItem.id } }" class="btn btn-dark ms-2">Learn More</router-link>
                                 </div>
                             </div>
                         </div>
@@ -88,20 +87,20 @@
                 <span>
                     <i class="bi bi-chat-heart"></i>
                 </span>
-                <p>추가 될 클래스를 기다려주세요!</p>
+                <p>추가 될 상품을 기다려주세요!</p>
             </div>
         </div>
         <!-- Paginator Start -->
         <div class="paginator d-flex justify-content-center align-items-center" ref="paging">
-            <button v-if="classData.previous" @click="handlePrevClick" class="btn btn-outline-dark mx-2">< 이전</button>
+            <button v-if="productData.previous" @click="handlePrevClick" class="btn btn-outline-dark mx-2">< 이전</button>
             <button v-for="pageNumber in displayedPages" :key="pageNumber" @click="goToPage(pageNumber)" :class="['btn', 'btn-outline-dark', 'mx-2', { 'active': pageNumber === page }]">
                 {{ pageNumber }}
             </button>
-            <button v-if="classData.next" @click="handleNextClick" class="btn btn-outline-dark mx-2">다음 ></button>
+            <button v-if="productData.next" @click="handleNextClick" class="btn btn-outline-dark mx-2">다음 ></button>
         </div>
         <!-- Paginator End -->
     </div>
-    <!-- Class List End -->
+    <!-- Product List End -->
 </template>
 
 <script>
@@ -112,8 +111,8 @@ export default {
         return {
             searchQuery: '',
             selectedCategory: '',
-            topClasses: [],
-            classData: [],
+            topProducts: [],
+            productData: [],
             sortBy: '-created_at',
             page: 1,
             pagesPerGroup: 6,
@@ -124,12 +123,12 @@ export default {
     },
     computed: {
         categories(){
-            const catogories = this.classes.map(classItem => classItem.category);
-            return [...new Set(catogories)];
+            const categories = this.products.map(productItem => productItem.category);
+            return [...new Set(categories)];
         },
         displayedPages() {
             const start = this.currentPageGroup * this.pagesPerGroup;
-            const end = start + Math.min(this.pagesPerGroup, this.classData.total_pages);
+            const end = start + Math.min(this.pagesPerGroup, this.productData.total_pages);
 
             const page_range = []
             for (let i = start + 1; i < end; i++) {
@@ -139,38 +138,38 @@ export default {
             return page_range;
         },
         maxPageGroup() {
-            return Math.ceil(this.classData.total_pages / this.pagesPerGroup) - 1;
+            return Math.ceil(this.productData.total_pages / this.pagesPerGroup) - 1;
         }
     },
     mounted() {
-        this.getTopClasses();
-        this.getClassesList();
+        this.getTopProducts();
+        this.getProductsList();
 
-        if (this.topClasses.length) {
-            const carouselElement = document.getElementById('topClassesCarousel');
+        if (this.topProducts.length) {
+            const carouselElement = document.getElementById('topProductsCarousel');
             carouselElement.addEventListener('slide.bs.carousel', (event) => {
                 this.setActiveIndex(event.to);
             })    
         }
     },
     methods: {
-        async getTopClasses() {
+        async getTopProducts() {
             try {
-                const response = await axios.get(`${process.env.VUE_APP_API_URL}class/classes/list_top_classes/`, {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}product/products/list_top_products/`, {
                     withCredentials: true
                 })
                 if (response.status === 200) {
-                    this.topClasses = response.data;
+                    this.topProducts = response.data;
                 } else {
-                    console.error("Failed to fetch top class data", response.status);
+                    console.error("Failed to fetch top product data", response.status);
                 }
             } catch (error) {
-                console.error("Failed to fetch top class data", error);
+                console.error("Failed to fetch top product data", error);
             }
         },
-        async getClassesList() {
+        async getProductsList() {
             try {
-                const response = await axios.get(`${process.env.VUE_APP_API_URL}class/classes/list_classes/`, {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}product/products/list_products/`, {
                     params: {
                         page: this.page,
                         page_size: this.pagesPerGroup,
@@ -180,46 +179,46 @@ export default {
                 })
 
                 if (response.status === 200) {
-                    this.classData = response.data;
+                    this.productData = response.data;
                 } else {
-                    console.error("Failed to fetch class data", response.status);
+                    console.error("Failed to fetch product data", response.status);
                 }
             } catch (error) {
-                console.error("Failed to fetch class data", error);
+                console.error("Failed to fetch product data", error);
             }
         },
-        async sortClasses(criteria) {
+        async sortProducts(criteria) {
             if (criteria === 'newest') {
                 this.sortBy = '-created_at';
                 this.activeCriteria = 'newest';
-                await this.getClassesList();
+                await this.getProductsList();
             } else if (criteria === 'title') {
                 this.sortBy = 'title';
                 this.activeCriteria = 'title';
-                await this.getClassesList();
+                await this.getProductsList();
             } else if (criteria === 'priceLow') {
                 this.sortBy = 'price';
                 this.activeCriteria = 'priceLow';
-                await this.getClassesList();
+                await this.getProductsList();
             } else if (criteria === 'priceHigh') {
                 this.sortBy = '-price';
                 this.activeCriteria = 'priceHigh';
-                await this.getClassesList();
+                await this.getProductsList();
             } else if (criteria === 'recommended') {
                 this.sortBy = '-likes';
                 this.activeCriteria = 'recommended';
-                await this.getClassesList();
+                await this.getProductsList();
             } else if (criteria === 'rating') {
                 this.sortBy = '-average_rating';
                 this.activeCriteria = 'rating';
-                await this.getClassesList();
+                await this.getProductsList();
             }
         },
         setActiveIndex(index) {
             this.activeIndex = index;
         },
         async handlePrevClick() {
-            if (this.classData.previous && this.page % this.pagesPerGroup === 1) {
+            if (this.productData.previous && this.page % this.pagesPerGroup === 1) {
                 await this.prevPageGroup();
             } else {
                 await this.prevPage();
@@ -227,7 +226,7 @@ export default {
             this.scrollToPaginator();
         },
         async handleNextClick() {
-            if (this.classData.next && this.page % this.pagesPerGroup === 0) {
+            if (this.productData.next && this.page % this.pagesPerGroup === 0) {
                 await this.nextPageGroup();
             } else {
                 await this.nextPage();
@@ -236,19 +235,19 @@ export default {
         },
         async goToPage(pageNumber) {
             this.page = pageNumber;
-            await this.getClassesList();
+            await this.getProductsList();
             this.scrollToPaginator();
         },
         async prevPage() {
-            if (this.classData.previous !== 'None') {
+            if (this.productData.previous !== 'None') {
                 this.page--;
-                await this.getClassesList();
+                await this.getProductsList();
             }
         },
         async nextPage() {
-            if (this.classData.next !== 'None') {
+            if (this.productData.next !== 'None') {
                 this.page++;
-                await this.getClassesList();
+                await this.getProductsList();
             }
         },
         async nextPageGroup() {
@@ -314,7 +313,7 @@ export default {
     height: 300px;
 }
 
-/* class list */
+/* product list */
 .content-count {
     font-size: 0.8rem;
     color: #888888;

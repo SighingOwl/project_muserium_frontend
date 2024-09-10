@@ -4,11 +4,11 @@ import Login from '@/views/Login.vue';
 import RestoreAccounts from '../views/RestoreAccounts.vue';
 import SocialLoginCancel from '@/views/SocialLoginCancel.vue';
 import ProceedLogin from '@/views/ProceedLogin.vue';
-import IdVerification from '../views/IdVerification.vue';
 import Signup from '@/views/Signup.vue';
 import MyPage from '@/views/MyPage.vue';
 import Class from '@/views/Class.vue';
 import ClassDetail from '@/views/ClassDetail.vue';
+import Shop from '@/views/Shop.vue';
 import CustomerSupport from '@/views/CustomerSupport.vue';
 import NotFound from '@/views/NotFound.vue';
 
@@ -39,11 +39,6 @@ const routes = [
     component: ProceedLogin,
   },
   {
-    path: '/id-verification/',
-    name: 'IdVerification',
-    component: IdVerification,
-  },
-  {
     path: '/signup/',
     name: 'Signup',
     component: Signup,
@@ -63,6 +58,11 @@ const routes = [
     name: 'ClassDetail',
     component: ClassDetail,
     props: true
+  },
+  {
+    path: '/shop/',
+    name: 'Shop',
+    component: Shop,
   },
   {
     path: '/support/',
