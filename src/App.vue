@@ -16,7 +16,7 @@ export default {
             if (this.$store.getters.getIsLogin !== false) {
                 await this.$store.dispatch('refreshToken');
             }
-        }, 60 * 60 * 1000);
+        }, 60 * 10 * 1000);
     },
     methods: {
         async getCsrfToken() {

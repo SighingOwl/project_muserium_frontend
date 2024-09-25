@@ -122,6 +122,7 @@ const loginStore = {
                     .then((response) => {
                         if (response.status === 200) {
                             commit('logoutSuccess')
+                            window.location.reload()
                         } 
                     })
                     .catch((error) => {
@@ -137,10 +138,15 @@ const loginStore = {
                     .then((response) => {
                         if (response.status === 200) {
                             commit('logoutSuccess')
+                            window.location.reload()
                         }
                     })
                     .catch((error) => {
-                        alert('Fail to logout.', error)
+                        if (error.response.status === 401) {
+                            commit('logoutSuccess')
+                        } else {
+                            alert('Fail to logout.', error)
+                        }
                     })    
             }
         },
@@ -200,7 +206,7 @@ const loginStore = {
         async refreshToken({ dispatch }) {
             const refreshToken = localStorage.getItem('refreshToken')
 
-            axios
+            await axios
                 .post(`${process.env.VUE_APP_API_URL}accounts/token/refresh/`, {
                     refresh: refreshToken,
                 }, {

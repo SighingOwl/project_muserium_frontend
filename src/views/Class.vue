@@ -116,7 +116,7 @@ export default {
             classData: [],
             sortBy: '-created_at',
             page: 1,
-            pagesPerGroup: 6,
+            pagesPerGroup: 5,
             currentPageGroup: 0,
             activeIndex: 0,
             activeCriteria: 'newest',
@@ -132,7 +132,7 @@ export default {
             const end = start + Math.min(this.pagesPerGroup, this.classData.total_pages);
 
             const page_range = []
-            for (let i = start + 1; i < end; i++) {
+            for (let i = start + 1; i < end + 1; i++) {
                 page_range.push(i);
             }
 

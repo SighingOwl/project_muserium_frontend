@@ -93,9 +93,9 @@
 import axios from 'axios';
 import flatPickr from 'vue-flatpickr-component';
 import 'flatpickr/dist/flatpickr.css';
-import DetailInfo from '../components/classDetail/DetailInfo.vue';
-import Reviews from '../components/classDetail/Reviews.vue';
-import QnA from '../components/classDetail/QnA.vue';
+import DetailInfo from '../components/detailPage/DetailInfo.vue';
+import Reviews from '../components/detailPage/Reviews.vue';
+import QnA from '../components/detailPage/QnA.vue';
 
 export default {
     components: {

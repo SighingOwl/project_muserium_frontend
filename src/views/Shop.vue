@@ -58,7 +58,7 @@
             </div>
             <hr class="my-4">
         </div>
-        <div v-if="productData.length" class="row">
+        <div v-if="productData.count" class="row">
             <div class="col-md">
                 <div class="row">
                     <div v-for="(productItem, index) in productData.results" :key="productItem.id" class="col-md-4 mb-4">
@@ -131,7 +131,7 @@ export default {
             const end = start + Math.min(this.pagesPerGroup, this.productData.total_pages);
 
             const page_range = []
-            for (let i = start + 1; i < end; i++) {
+            for (let i = start + 1; i < end + 1; i++) {
                 page_range.push(i);
             }
 
@@ -154,22 +154,24 @@ export default {
     },
     methods: {
         async getTopProducts() {
-            try {
-                const response = await axios.get(`${process.env.VUE_APP_API_URL}product/products/list_top_products/`, {
+            await axios
+                .get(`${process.env.VUE_APP_API_URL}shop/products/list_top_products/`, {
                     withCredentials: true
                 })
-                if (response.status === 200) {
-                    this.topProducts = response.data;
-                } else {
-                    console.error("Failed to fetch top product data", response.status);
-                }
-            } catch (error) {
-                console.error("Failed to fetch top product data", error);
-            }
+                .then((response) => {
+                    if (response.status === 200) {
+                        this.topProducts = response.data;
+                    }
+                })
+                .catch((error) => {
+                    if (error.response && error.response.status === 404) {
+                        console.error(error.response);
+                    }
+                });
         },
         async getProductsList() {
-            try {
-                const response = await axios.get(`${process.env.VUE_APP_API_URL}product/products/list_products/`, {
+            await axios
+                .get(`${process.env.VUE_APP_API_URL}shop/products/list_products/`, {
                     params: {
                         page: this.page,
                         page_size: this.pagesPerGroup,
@@ -177,15 +179,16 @@ export default {
                     },
                     withCredentials: true
                 })
-
-                if (response.status === 200) {
-                    this.productData = response.data;
-                } else {
-                    console.error("Failed to fetch product data", response.status);
-                }
-            } catch (error) {
-                console.error("Failed to fetch product data", error);
-            }
+                .then((response) => {
+                    if (response.status === 200) {
+                        this.productData = response.data;
+                    }
+                })
+                .catch((error) => {
+                    if (error.response && error.response.status === 404) {
+                        console.error(error.response);
+                    }
+                });
         },
         async sortProducts(criteria) {
             if (criteria === 'newest') {

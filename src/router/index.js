@@ -9,8 +9,10 @@ import MyPage from '@/views/MyPage.vue';
 import Class from '@/views/Class.vue';
 import ClassDetail from '@/views/ClassDetail.vue';
 import Shop from '@/views/Shop.vue';
+import ProductDetail from '../views/ProductDetail.vue';
 import CustomerSupport from '@/views/CustomerSupport.vue';
-import NotFound from '@/views/NotFound.vue';
+import NotFound from '@/views/errorViews/NotFound.vue';
+import Unauthorized from '../views/errorViews/Unauthorized.vue';
 
 const routes = [
   {
@@ -54,7 +56,7 @@ const routes = [
     component: Class,
   },
   {
-    path: '/class/:classID',
+    path: '/class/:classID/',
     name: 'ClassDetail',
     component: ClassDetail,
     props: true
@@ -65,6 +67,12 @@ const routes = [
     component: Shop,
   },
   {
+    path: '/shop/:productID/',
+    name: 'ProductDetail',
+    component: ProductDetail,
+    props: true
+  },
+  {
     path: '/support/',
     name: 'CustomerSupport',
     component: CustomerSupport,
@@ -73,6 +81,11 @@ const routes = [
     path: '/:pathMatch(.*)*', 
     name: 'NotFound',
     component: NotFound
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'Unauthorized',
+    component: Unauthorized
   }
 
 ];
@@ -81,5 +94,8 @@ const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
 });
+
+
+
 
 export default router;

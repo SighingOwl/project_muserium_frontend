@@ -3,8 +3,8 @@
         <!-- Question Summary -->
         <div class="container d-flex justify-content-between">
             <div>
-                <h4>고객 문의</h4>
-                <span class="text-black text-opacity-50">클래스에 대해 궁금한 점을 물어보세요!</span> 
+                <h4>{{ qnaTitle }}</h4>
+                <span class="text-black text-opacity-50">{{ qnaExplanation }}</span> 
             </div>
         </div>
         <hr class="border border-dark opacity-100">
@@ -15,7 +15,7 @@
         <form v-if="showQuestionForm" @submit.prevent="submitQuestion" class="row mt-3">
             <!-- Question Content -->
             <div class="col-md text-center d-flex flex-column justify-content-center align-items-center position-relative" id="question-container">
-                <label class="question-label mb-3" for="question-content"><h5>클래스에 대해서 어떤 점이 궁금하세요?</h5></label>
+                <label class="question-label mb-3" for="question-content"><h5>{{ questionExplanation }}</h5></label>
                 <div class="col-12 d-flex justify-content-start align-items-center mb-2">
                     <div class="form-floating col-md-6">
                         <textarea class="form-control mt-2" id="question-title" v-model="questionTitle" @input="limitQuestionTitleLength" placeholder="제목을 적어주세요. (최소 5자 / 최대 100자)" required></textarea>
@@ -67,7 +67,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="content-count">
                         <span>Total </span>
-                        <span class="fw-bold text-black">{{ paginator.count || 0}}</span>
+                        <span class="fw-bold text-black">{{ questions.count || 0}}</span>
                         <span> Questions</span>
                     </div>
                     <div class="sort-links">
@@ -77,7 +77,8 @@
                 </div>
             </div>
             <hr>
-            <div v-if="questionList.length" class="mt-4">
+            <!-- Question List Header-->
+            <div v-if="questions" class="mt-4">
                 <div class="row fw-bold">
                     <div class="col text-center">답변여부</div>
                     <div class="col-6 text-center">제목</div>
@@ -87,9 +88,10 @@
                     <div class="col text-center">조회수</div>
                 </div>
                 <hr>
-                <div v-for="(question, index) in questionList" :key="question.id" >
+                <!-- Question List Content -->
+                <div v-for="(question, index) in questions.results" :key="question.id" >
                     <div class="row align-items-center mt-4">
-                        <div class="col text-center">{{ !question.answer.is_answered ? '답변대기' : '답변완료' }}</div>
+                        <div class="col text-center">{{ !question.is_answered ? '답변대기' : '답변완료' }}</div>
                         <div class="col-6">
                             <template v-if="!question.is_secret">
                                 <a href="#" class="text-decoration-none text-black question-title" @click="handleTitleClick(question, $event)">
@@ -97,16 +99,19 @@
                                 </a>
                             </template>
                             <template v-else>
-                                <span class="text-black quetion-title text-opacity-50">{{ question.title }}</span>
+                                <a class="text-decoration-none text-black question-title text-opacity-50" @click="handleTitleClick(question, $event)">
+                                    {{ question.title }}
+                                </a>
                                 <i v-if="question.is_secret" class="bi bi-lock-fill"></i>    
                             </template>
                         </div>
                         <div class="col text-center">{{ question.author }}</div>
                         <div class="col text-center">{{ formatDate(question.created_at) }}</div>
-                        <div class="col text-center">{{ formatDate(question.answer.answered_at) }}</div>
+                        <div class="col text-center">{{ formatDate(question.answered_at) }}</div>
                         <div class="col text-center">{{ question.view_count }}</div>    
                     </div>
                     <div v-if="showContent === question.id" class="mt-2 question-content-area">
+                        <!-- Question Content -->
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-10 offset-md-1 qna-content-area">
@@ -114,41 +119,38 @@
                                         <div class="fw-bold">질문 내용</div>
                                         <div>
                                             <!-- 문의 수정은 작성자만 가능하고 문의 삭제는 작성자와 관리자 모두 가능하도록 수정 예정 -->
-                                            <button type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="updateQuestionForm(question)">문의 수정</button>
-                                            <button type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="confirmDeleteQuestion(question)">문의 삭제</button>     
+                                            <button v-if="showAuthorModify" type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="updateQuestionForm(question)">문의 수정</button>
+                                            <button v-if="showAuthorDelete" type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="confirmDeleteQuestion(question)">문의 삭제</button>     
                                         </div>
                                     </div> 
                                     <div class="mt-3">
-                                        <p>{{ questionContents[question.id] }}</p>
-                                        <img v-if="questionImages[question.id]" :src="questionImages[question.id]" alt="Question Image" class="img-fluid mt-3 content-img"/>
+                                        <p>{{ questionContents[question.id].content }}</p>
+                                        <img v-if="questionContents[question.id].image" :src="questionContents[question.id].image" alt="Question Image" class="img-fluid mt-3 content-img"/>
                                     </div>
                                     
                                 </div>
                             </div>
-                            <hr v-if="question.answer.id" class="col-md-10 offset-md-1">
+                            <!-- Answer Content -->
+                            <hr v-if="question.is_answered" class="col-md-10 offset-md-1">
                             <div class="row">
                                 <div class="col-md-10 offset-md-1 qna-content-area">
                                     <div class="d-flex justify-content-between align-items-end">
-                                        <div v-if="question.answer.is_answered" class="fw-bold">관리자 답변</div>
-                                        <div v-if="!question.answer.is_answered"></div>
-                                        <div>
-                                            <!-- 로그인 기능 생성 후 관리자가 로그인 했을 때만 활성화로 수정 예정 -->
-                                            <button v-if="!question.answer.id" type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="toggleAnswerForm(question.id)" >관리자 답변 등록</button>
-                                            <button v-if="question.answer.id" type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="updateAnswerForm(question)">관리자 답변 수정</button>
-                                            <button v-if="question.answer.id" type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="confirmDeleteAnswer(question.id, question.answer.id)">관리자 답변 삭제</button>  
+                                        <div v-if="question.is_answered" class="fw-bold">관리자 답변</div>
+                                        <div v-if="!question.is_answered"></div>
+                                        <div v-if="showAdminMenu">
+                                            <button v-if="!question.is_answered" type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="toggleAnswerForm(question.id)" >관리자 답변 등록</button>
+                                            <button v-if="question.is_answered" type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="updateAnswerForm(question)">관리자 답변 수정</button>
+                                            <button v-if="question.is_answered" type="button" class="btn btn-outline-dark ms-2" id="control-review-btn" @click="confirmDeleteAnswer(question.id, answerContents[question.id].id)">관리자 답변 삭제</button>  
                                         </div>
-                                        
                                     </div>  
-                                    
-                                    <div v-if="question.answer.id" class="mt-3">
-                                        <p>{{ answerContents[question.id] }}</p>
-                                        <img v-if="answerImages[question.id]" :src="answerImages[question.id]" alt="Answer Image" class="img-fluid mt-3 content-img"/>
+                                    <div v-if="question.is_answered" class="mt-3">
+                                        <p>{{ answerContents[question.id].content }}</p>
+                                        <img v-if="answerContents[question.id].image" :src="answerContents[question.id].image" alt="Answer Image" class="img-fluid mt-3 content-img"/>
                                     </div>
-                                              
                                 </div>
                             </div>
                             <!-- Answer Form Start -->
-                            <form v-if="showAnswerForm === question.id" @submit.prevent="submitAnswer(question)" class="mt-3">
+                            <form v-if="showAnswerForm === question.id && showAdminMenu" @submit.prevent="submitAnswer(question)" class="mt-3">
                                 <div class="row">
                                     <div class="col-md-10 offset-md-1">
                                         <div class="form-floating mb-3">
@@ -190,11 +192,11 @@
 
                 <!-- Paginator Start -->
                 <div class="paginator d-flex justify-content-center align-items-center" ref="paging">
-                    <button v-if="paginator.previous_page" @click="handlePrevClick" class="btn btn-outline-dark mx-2">< 이전</button>
+                    <button v-if="questions.previous" @click="handlePrevClick" class="btn btn-outline-dark mx-2">< 이전</button>
                     <button v-for="pageNumber in displayedPages" :key="pageNumber" @click="goToPage(pageNumber)" :class="['btn', 'btn-outline-dark', 'mx-2', { 'active': pageNumber === page }]">
                         {{ pageNumber }}
                     </button>
-                    <button v-if="paginator.next_page" @click="handleNextClick" class="btn btn-outline-dark mx-2">다음 ></button>
+                    <button v-if="questions.next" @click="handleNextClick" class="btn btn-outline-dark mx-2">다음 ></button>
                 </div>
                 <!-- Paginator End -->
             </div>
@@ -215,9 +217,20 @@
 import axios from 'axios';
 
 export default {
-    props: ['classItem'],
+    props: {
+        classItem: Object,
+        productItem: Object,
+    },
     data() {
         return {
+            /* QnA page variables */
+            qnaTitle: '',
+            qnaExplanation: '',
+            questionExplanation: '',
+            showAdminMenu: false,   // 관리자 답변 버튼 활성화 여부
+            showAuthorModify: false,    // 작성자 수정 버튼 활성화 여부
+            showAuthorDelete: false,    // 작성자 삭제 버튼 활성화 여부
+
             /* showAlert variables */
             showSubmitAlert: false,
             showUpdateAlert: false,
@@ -230,11 +243,10 @@ export default {
             questionTitle: '',
             questionTitleLenLowerBound: 5,
             questionTitleLenUpperBound: 100,
-            questionList: {},
+            questions: {},
             questionID: '',
             questionContents: {},
             questionContent: '',
-            questionImages: {},
             questionImage: '',
             questionImagePreview: '',
             questionContentLenLowerBound: 10,
@@ -244,7 +256,6 @@ export default {
             answerID: '',
             answerContents: {},
             answerContent: '',
-            answerImages: {},
             answerImage: '',
             answerImagePreview: '',
             answerContentLenLowerBound: 10,
@@ -256,7 +267,6 @@ export default {
             isUpdating: false,
 
             /* Paginator variables */
-            paginator: {},
             page: 1,
             pagesize: 5,
             pageOrder: '-created_at',
@@ -294,62 +304,77 @@ export default {
         },
         displayedPages() {
             const start = this.currentPageGroup * this.pagesPerGroup;
-            const end = start + this.pagesPerGroup;
-            return this.paginator.page_range.slice(start, end);
+            const end = start + Math.min(this.pagesPerGroup, this.questions.total_pages);
+
+            const page_range = []
+            for (let i = start + 1; i < end + 1; i++) {
+                page_range.push(i);
+            }
+
+            return page_range;
         },
         maxPageGroup() {
-            return Math.ceil(this.paginator.page_range.length / this.pagesPerGroup) - 1;
+            return Math.ceil(this.questions.total_pages / this.pagesPerGroup) - 1;
         }
     },
     async mounted() {
+        await this.initQnAPage();
         await this.getQuestionList();
     },
     methods: {
+        /* Initialization QnA Page */
+        async initQnAPage() {
+            if (this.classItem) {
+                this.qnaTitle = '클래스 문의';
+                this.qnaExplanation = '클래스에 대한 궁금한 점을 문의해주세요!';
+                this.questionExplanation = '클래스에 대해서 어떤 점이 궁금하세요?';
+            } else if (this.productItem) {
+                this.qnaTitle = '상품 문의';
+                this.qnaExplanation = '상품에 대한 궁금한 점을 문의해주세요!';
+                this.questionExplanation = '상품에 대해서 어떤 점이 궁금하세요?';
+            }
+        },
+
         /* Question Methods */
         async getQuestionList() {
-            try {
-                const response = await axios.get(`${process.env.VUE_APP_API_URL}common/question/read/class/`, {
+            await axios
+                .get(`${process.env.VUE_APP_API_URL}common/questions/read_question/`, {
                     params: {
-                        glass_class_id: this.classItem.id,
+                        glass_class_id: this.classItem ? this.classItem.id : null,
+                        product_id: this.productItem.id ? this.productItem.id : null,
                         page: this.page,
                         page_size: this.pageSize,
                         page_order: this.pageOrder,
                     }
+                })
+                .then((response) => {
+                    if (response.status === 200) {
+                        const questionData = response.data;
+                        this.questions = questionData.questions;
+                    }
+                })
+                .catch((error) => {
+                    console.error(error.response);
                 });
-                
-                if (response.status === 200) {
-                    const questionData = response.data;
-                    this.questionList = questionData.questions;
-                    this.paginator = questionData.paginator;
-                } else {
-                    throw new Error('Failed to get questions');
-                }
-            } catch (error) {
-                console.error("There was a problem getting the questions.", error);
-            }
         },
         async getQuestionContent(questionID) {
-            try {
-                const response = await axios.get(`${process.env.VUE_APP_API_URL}common/question/get-question-content/class/`, {
+            await axios
+                .get(`${process.env.VUE_APP_API_URL}common/questions/get_question_content/`, {
                     params: {
                         question_id: questionID,
                     },
                     withCredentials: true,
+                })
+                .then((response) => {
+                    if (response.status === 200) {
+                        const contentData = response.data;
+                        this.questionContents[questionID] = contentData.question;
+                        this.answerContents[questionID] = contentData.answer;
+                    }
+                })
+                .catch((error) => {
+                    console.error(error.response);
                 });
-
-                if (response.status === 200) {
-                    const contentData = response.data;
-                    this.questionContents[questionID] = contentData.question.content;
-                    this.questionImages[questionID] = contentData.question.image;
-                    this.answerContents[questionID] = contentData.question.answer_content;
-                    this.answerImages[questionID] = contentData.question.answer_image;
-                } else {
-                    throw new Error('Failed to get question content');
-                }
-
-            }   catch (error) {
-                console.error("There was a problem getting the question content.", error);
-            }
         }, 
         confirmSubmitQuestion(event) {
             event.preventDefault();
@@ -365,38 +390,43 @@ export default {
             }
         },
         async submitQuestion() {
-            try {
-                const formData = new FormData();
-                formData.append('title', this.questionTitle);
-                formData.append('content', this.questionContent);
-                formData.append('is_secret', this.isSecret);
+            const formData = new FormData();
+            formData.append('title', this.questionTitle);
+            formData.append('content', this.questionContent);
+            formData.append('is_secret', this.isSecret);
 
-                if (this.questionImage) {
-                    formData.append('image', this.questionImage);
-                }
+            if (this.questionImage) {
+                formData.append('image', this.questionImage);
+            }
 
-                const response = await axios.post(`${process.env.VUE_APP_API_URL}common/question/create/class/`, formData, {
+            await axios
+                .post(`${process.env.VUE_APP_API_URL}common/questions/create_question/`, formData, {
                     params: {
-                        glass_class_id: this.classItem.id,
+                        class_id : this.classItem ? this.classItem.id : null,
+                        product_id: this.productItem ? this.productItem.id : null,
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                        'Content-Type': 'multipart/form-data',
                     },
                     withCredentials: true,
+                })
+                .then(async (response) => {
+                    if (response.status === 201) {
+                        await this.getQuestionList();
+                        await this.resetQuestionForm();
+                        this.showSubmitAlert = true;
+                    }
+                })
+                .catch((error) => {
+                    console.error(error.response);
                 });
-                await this.getQuestionList();
-                this.questionTitle = '';
-                this.questionContent = '';
-                this.questionImage = '';
-                this.questionImagePreview = '';
-                this.showQuestionForm = false;
-                this.showSubmitAlert = true;
-            } catch (error) {
-                console.error("There was a problem submitting the question.", error);
-            }
         },
         updateQuestionForm(question) {
             this.questionID = question.id;
             this.questionTitle = question.title;
-            this.questionContent = this.questionContents[question.id];
-            this.questionImagePreview = this.questionImages[question.id];
+            this.questionContent = this.questionContents[question.id].content;
+            this.questionImagePreview = this.questionContents[question.id].image;
             this.isSecret = question.is_secret;
             this.isUpdating = true;
             this.showQuestionForm = true;
@@ -418,40 +448,37 @@ export default {
             }
         },
         async updateQuestion() {
-            try {
-                const formData = new FormData();
-                formData.append('title', this.questionTitle);
-                formData.append('content', this.questionContent);
-                formData.append('is_secret', this.isSecret);
+            const formData = new FormData();
+            formData.append('title', this.questionTitle);
+            formData.append('content', this.questionContent);
+            formData.append('is_secret', this.isSecret);
 
-                if (this.questionImage) {
-                    formData.append('image', this.questionImage);
-                }
+            if (this.questionImage) {
+                formData.append('image', this.questionImage);
+            }
 
-                const response = await axios.post(`${process.env.VUE_APP_API_URL}common/question/update/class/`, formData, {
+            await axios
+                .post(`${process.env.VUE_APP_API_URL}common/questions/update_question/`, formData, {
                     params: {
                         question_id: this.questionID,
                     },
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
                     withCredentials: true,
+                })
+                .then(async (response) => {
+                    if (response.status === 200) {
+                        await this.getQuestionList();
+                        await this.getQuestionContent(this.questionID);
+                        await this.resetQuestionForm();
+                        this.showUpdateAlert = true;
+                    }
+                })
+                .catch((error) => {
+                    console.error(error.response);
                 });
-                if (response.status === 200) {
-                    await this.getQuestionList(); // Get reviews again to update the list
-                    await this.getQuestionContent(this.questionID);
-                    this.questionID = '';
-                    this.questionTitle = '';
-                    this.questionContent = '';
-                    this.questionImage = '';
-                    this.questionImagePreview = '';
-                    this.isSecret = false;
-                    this.showQuestionForm = false;  // Hide the form after submitting the review
-                    this.isUpdating = false;
-                    this.showUpdateAlert = true;  // Show the success alert
-                } else {
-                    throw new Error('Failed to update review');
-                }
-            } catch (error) {
-                console.error("There was a problem updating the question.", error);
-            }
         },
         confirmDeleteQuestion(question) {
             if (!question) {
@@ -466,32 +493,30 @@ export default {
             }
         },
         async deleteQuestion() {
-            try {
-                const response = await axios.delete(`${process.env.VUE_APP_API_URL}common/question/delete/class/`, {
+            await axios
+                .delete(`${process.env.VUE_APP_API_URL}common/questions/delete_question/`, {
                     params: {
                         question_id: this.questionID,
-                        user_id: 1,
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
                     },
                     withCredentials: true,
+                })
+                .then(async (response) => {
+                    if (response.status === 200) {
+                        this.questionContents[this.questionID] = '';
+                        this.answerContents[this.questionID] = '';
+
+                        await this.getQuestionList();
+                        this.showDeleteAlert = true;
+                    }
+                })
+                .catch((error) => {
+                    console.error(error.response);
                 });
-
-                if (response.status === 200) {
-                    this.questionContents[this.questionID] = '';
-                    this.questionImages[this.questionID] = '';
-                    this.answerContents[this.questionID] = '';
-                    this.answerImages[this.questionID] = '';
-
-                    await this.getQuestionList();
-                    this.showDeleteAlert = true;
-                } else {
-                    throw new Error('Failed to delete question');
-                }
-
-                
-            } catch (error) {
-                console.error("There was a problem deleting the question.", error);
-            }
         },
+        
 
         /* Answer Methods */
         confirmSubmitAnswer(questionID, event) {
@@ -508,42 +533,42 @@ export default {
             }
         },
         async submitAnswer(questionID) {
-            try {
-                const formData = new FormData();
-                formData.append('content', this.answerContent);
+            const formData = new FormData();
+            formData.append('content', this.answerContent);
 
-                if (this.answerImage) {
-                    formData.append('image', this.answerImage);
-                }
-
-                const response = await axios.post(`${process.env.VUE_APP_API_URL}common/answer/create/class/`, formData, {
+            if (this.answerImage) {
+                formData.append('image', this.answerImage);
+            }
+            
+            await axios
+                .post(`${process.env.VUE_APP_API_URL}common/answers/create_answer/`, formData, {
                     params: {
                         question_id: questionID,
                     },
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
                     withCredentials: true,
+                })
+                .then(async (response) => {
+                    if (response.status === 201) {
+                        await this.getQuestionList();
+                        await this.getQuestionContent(questionID);
+                        await this.resetAnswerForm();
+                        this.showSubmitAlert = true;
+                    }
+                })
+                .catch((error) => {
+                    console.error(error.response);
                 });
-
-                if (response.status === 200) {
-                    await this.getQuestionList();
-                    await this.getQuestionContent(questionID);
-                    this.answerContent = '';
-                    this.answerImage = '';
-                    this.answerImagePreview = '';
-                    this.showAnswerForm = false;
-                    this.showSubmitAlert = true;
-                } else {    
-                    throw new Error(response.message);
-                }
-            } catch (error) {
-                console.error("There was a problem submitting the answer.", error);
-            }
         },
         updateAnswerForm(question) {
             this.questionID = question.id;
-            this.answerID = question.answer.id;
-            this.answerContent = this.answerContents[question.id];
-            this.answerImage = this.answerImages[question.id];
-            this.answerImagePreview = this.answerImages[question.id];
+            this.answerID = this.answerContents[question.id].id;
+            this.answerContent = this.answerContents[question.id].content;
+            this.answerImage = this.answerContents[question.id].image;
+            this.answerImagePreview = this.answerContents[question.id].image;
             this.isUpdating = true;
             this.showAnswerForm = question.id;
         },
@@ -561,76 +586,112 @@ export default {
             }
         },
         async updateAnswer() {
-            try {
-                const formData = new FormData();
-                formData.append('content', this.answerContent);
+            const formData = new FormData();
+            formData.append('content', this.answerContent);
 
-                if (this.answerImage) {
-                    formData.append('image', this.answerImage);
-                }
+            if (this.answerImage) {
+                formData.append('image', this.answerImage);
+            }
 
-                const response = await axios.post(`${process.env.VUE_APP_API_URL}common/answer/update/class/`, formData, {
+            await axios
+                .post(`${process.env.VUE_APP_API_URL}common/answers/update_answer/`, formData, {
                     params: {
                         answer_id: this.answerID,
                     },
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
                     withCredentials: true,
+                })
+                .then(async (response) => {
+                    if (response.status === 200) {
+                        await this.getQuestionList();
+                        await this.getQuestionContent(this.questionID);
+                        await this.resetAnswerForm();
+                        this.showUpdateAlert = true;
+                    }
+                })
+                .catch((error) => {
+                    console.error(error.response);
                 });
-                if (response.status === 200) {
-                    await this.getQuestionList(); // Get reviews again to update the list
-                    await this.getQuestionContent(this.questionID);
-                    this.answerID = '';
-                    this.answerContent = '';
-                    this.answerImage = '';
-                    this.answerImagePreview = '';
-                    this.showAnswerForm = false;
-                    this.isUpdating = false;
-                    this.showUpdateAlert = true;
-                } else {
-                    throw new Error('Failed to update review');
-                }
-            } catch (error) {
-                console.error("There was a problem updating the answer.", error);
-            }
         },
-        confirmDeleteAnswer(answerID) {
+        confirmDeleteAnswer(questionID, answerID) {
             if (!answerID) {
                 alert('답변 ID를 확인해주시고 다시 시도해주세요.');
             }
 
             if (confirm('답변을 삭제하시겠습니까?')) {
-                this.deleteAnswer(answerID);
+                this.deleteAnswer(questionID, answerID);
             } else {
                 return;
             }
         },
         async deleteAnswer(questionID, answerID) {
-            try {
-                const response = await axios.delete(`${process.env.VUE_APP_API_URL}common/answer/delete/class/`, {
+            await axios
+                .delete(`${process.env.VUE_APP_API_URL}common/answers/delete_answer/`, {
                     params: {
                         answer_id: answerID,
                     },
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                    },
                     withCredentials: true,
+                })
+                .then(async (response) => {
+                    if (response.status === 200) {
+                        this.answerContents[questionID] = '';
+
+                        await this.getQuestionList();
+                        await this.getQuestionContent(questionID);
+                        this.showDeleteAlert = true;
+                    }
+                })
+                .catch((error) => {
+                    console.error(error.response);
                 });
-                
-                if (response.status === 200) {
-                    this.answerContents[questionID] = '';
-                    this.answerImages[questionID] = '';
-
-                    await this.getQuestionList();
-                    this.showDeleteAlert = true;
-                } else {
-                    throw new Error('Failed to delete answer');
-                }
-
-            } catch (error) {
-                console.error("There was a problem deleting the answer.", error);
-            }
         },
 
         /* Content Methods */
         async handleTitleClick(question, event) {
+            /* 
+            게시물 제목을 클릭하면 해당 게시물의 내용을 보여주고 조회수를 증가시킴
+            작성자 확인 절차를 통해 비밀글인 경우 작성자와 관리자만 확인 가능
+            작성자인 경우 수정, 삭제 버튼 활성화
+            */
+
             event.preventDefault();
             const questionID = question.id;
+
+            // 작성자 확인 - 로그인 상태일 때만 적용
+            if (this.$store.getters.getIsLogin !== false) {
+                const authorStatus = await this.isAuthor(questionID);
+                if (authorStatus === true) {
+                    this.showAdminMenu = false;
+                    this.showAuthorModify = true;
+                    this.showAuthorDelete = true;
+                } else if (authorStatus === 'Super') {
+                    this.showAdminMenu = true;
+                    this.showAuthorModify = false;
+                    this.showAuthorDelete = true;
+                } else {
+                    this.showAdminMenu = false;
+                    this.showAuthorModify = false;
+                    this.showAuthorDelete = false;
+                    if (question.is_secret) {
+                        alert('비밀글은 작성자만 확인 가능합니다.');
+                        return;
+                    }
+                }
+            } else {
+                this.showAdminMenu = false;
+                this.showAuthorModify = false;
+                this.showAuthorDelete = false;
+                if (question.is_secret) {
+                    alert('비밀글은 작성자만 확인 가능합니다.');
+                    return;
+                }
+            }
 
             // Content가 보이는 상태라면 조회수를 증가시키지 않음
             if (this.showContent !== questionID) {
@@ -650,22 +711,49 @@ export default {
                 this.showContent = false;
             }
         },
-        async increaseViewCount(question) {
+        async isAuthor(questionID) {
+            // 작성자 확인 절차
             try {
-                const response = await axios.post(`${process.env.VUE_APP_API_URL}common/question/increase-view-count/`, {}, {
+                const response = await axios.get(`${process.env.VUE_APP_API_URL}common/questions/is_author/`, {
                     params: {
-                        question_id: question.id,
+                        question_id: questionID,
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
                     },
                     withCredentials: true,
                 });
-                
+        
                 if (response.status === 200) {
                     const data = response.data;
-                    question.view_count = data.view_count;
+                    return data.is_author;
                 }
-            }   catch (error) {
-                console.error("There was a problem increasing the view count.", error);
+            } catch (error) {
+                console.error(error.response);
+                return false;
             }
+            
+        },
+        async increaseViewCount(question) {
+            await axios
+                .post(`${process.env.VUE_APP_API_URL}common/questions/increase_question_view_count/`, {}, {
+                    params: {
+                        question_id: question.id,
+                    },
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                    },
+                    withCredentials: true,
+                })
+                .then((response) => {
+                    if (response.status === 200) {
+                        const data = response.data;
+                        question.view_count = data.view_count;
+                    }
+                })
+                .catch((error) => {
+                    console.error(error.response);
+                });
         },
 
         /* Form Methods */
@@ -687,16 +775,31 @@ export default {
         },
         confirmResetQuestionForm() {
             if (confirm('작성 중인 질문을 모두 지우시겠습니까?')) {
-                this.questionTitle = '';
-                this.questionContent = '';
-                this.showQuestionForm = false;
+                this.resetQuestionForm();
             }
         },
         confirmResetAnswerForm() {
             if (confirm('작성 중인 답변을 모두 지우시겠습니까?')) {
-                this.answerContent = '';
-                this.showAnswerForm = false;
+                this.resetAnswerForm();
             }
+        },
+        async resetQuestionForm() {
+            this.questionID = '';
+            this.questionTitle = '';
+            this.questionContent = '';
+            this.questionImage = '';
+            this.questionImagePreview = '';
+            this.isSecret = false;
+            this.isUpdating = false;
+            this.showQuestionForm = false;
+        },
+        async resetAnswerForm() {
+            this.answerID = '';
+            this.answerContent = '';
+            this.answerImage = '';
+            this.answerImagePreview = '';
+            this.isUpdating = false;
+            this.showAnswerForm = false;
         },
 
         /* Image Upload Methods */

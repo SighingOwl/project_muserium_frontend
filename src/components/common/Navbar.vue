@@ -129,10 +129,7 @@ export default {
             return this.currentPath.includes(path);
         },
         logoutSubmit() {
-            this.$store.dispatch('logout')
-                .then(() => {
-                    this.$router.push('/');
-                });
+            this.$store.dispatch('logout');
         },
     },
 };

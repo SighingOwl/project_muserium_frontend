@@ -35,7 +35,7 @@
 </template>
     
 <script>
-import { mapGetters } from 'vuex';
+
 
 export default {
     data() {
@@ -46,18 +46,10 @@ export default {
             onBtn: false,
         };
     },
-    computed: {
-        ...mapGetters(['getIsLogin']),
-        isLogin() {
-            return this.getIsLogin;
-        }
-    },
-    watch: {
-        isLogin(newVal) {
-            if (newVal) {
-                this.$router.go(-1);
-            }
-        },
+    created() {
+        if(this.$store.getters.getIsLogin) {
+            this.$router.go(-1);
+        } 
     },
     methods: {
         handleLogin(platform) {
@@ -65,9 +57,12 @@ export default {
                 this.$store.dispatch('login', {
                     email: this.email,
                     password: this.password,
-                });
+                })
+                .then(() => {
+                    window.history.back();
+                })
             } else if (platform === 'naver') {
-                window.open(`${process.env.VUE_APP_API_URL}accounts/naver/login/`, "naverlogin", "width=700, height=500");
+                window.location.href = `${process.env.VUE_APP_API_URL}accounts/naver/login/`;
             }
         },
     },

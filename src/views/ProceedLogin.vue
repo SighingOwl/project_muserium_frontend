@@ -51,7 +51,7 @@ export default {
 
             
             if (this.isLogin){
-                window.close();        
+                this.$router.go(-3);
             }
         },
     }
