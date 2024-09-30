@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@tinymce/tinymce-vue": "^6.0.1",
     "axios": "^1.7.3",
     "dotenv": "^16.4.5",
     "flatpickr": "^4.6.13",
+    "vitest": "^2.1.1",
     "vue": "^3.4.31",
     "vue-flatpickr-component": "^11.0.5",
     "vue-router": "^4.0.13",
@@ -23,6 +26,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.5",
+    "@vitest/coverage-v8": "^2.1.1",
     "vite": "^5.3.4"
   }
 }
