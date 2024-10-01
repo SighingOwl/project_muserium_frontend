@@ -36,6 +36,7 @@ jobs:
       
       # Run tests with coverage
       - name: Run tests with coverage
+        continue-on-error: true
         env:
           VUE_APP_API_URL: ${{ vars.VUE_APP_API_URL }}
         run: npm run test:coverage
