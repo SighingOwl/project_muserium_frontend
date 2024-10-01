@@ -16,19 +16,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '21' # Node version
 
+      # Cache node_modules
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
         run: npm install
-
+      
+      # Run tests with coverage
       - name: Run tests with coverage
         env:
           VUE_APP_API_URL: ${{ vars.VUE_APP_API_URL }}
         run: npm run test:coverage
-
+      
+      # SonarCloud Scan
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v3.0.0
         with:
