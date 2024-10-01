@@ -1,15 +1,25 @@
 import { mount } from '@vue/test-utils';
-import Home from '@/components/Home.vue';
-import axios from 'axios';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { JSDOM } from 'jsdom';
+import axios from 'axios';
+import Home from '@/views/Home.vue';
 
-vi.mock('axios');
+// JSDOM을 사용하여 브라우저 환경을 시뮬레이션
+const dom = new JSDOM(`<!DOCTYPE html><html><body><div id="main-banner-carousel"></div></body></html>`);
+global.window = dom.window;
+global.document = dom.window.document;
+global.navigator = {
+    userAgent: 'node.js',
+};
 
 describe('Home.vue', () => {
     let wrapper;
 
     beforeEach(() => {
         wrapper = mount(Home);
+
+        // 모듈 모킹
+        vi.mock('axios');
     });
 
     it('should fetch carousel data on mount', async () => {
